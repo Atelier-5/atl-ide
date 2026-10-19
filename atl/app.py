@@ -16,13 +16,19 @@ browser and engine or the workspace folders.
 from __future__ import annotations
 
 import argparse
+import atexit
 import sys
 from typing import Optional
 
-from flask import abort, jsonify, render_template, request
+import urllib.error
+import urllib.request
+
+from flask import Response, abort, jsonify, render_template, request, stream_with_context
 
 from . import engine as engine
 from . import i18n
+from . import sim
+from .i18n import _
 from .core import server
 from .core import workspace as ws
 
@@ -81,6 +87,90 @@ def model():
 def favicon():
     """Browsers ask for this by name whatever the page links to."""
     return app.send_static_file("favicon.svg")
+
+
+# ------------------------------------------------------------ simulation ----
+#
+# The virtual table: Webots on this PC and the robot's body in its container (sim.py).
+# The page never talks to the gateway itself: these routes pass a fixed set of
+# calls through, so the gateway stays reachable from this server only.
+
+ROBOT_ACTIONS = ("drive", "behaviour", "button", "clap", "lift", "led", "estop", "reset", "place")
+
+
+def twin_dir():
+    return (ws.FOLDERS[ws.USER] / "twin").resolve()
+
+
+@app.get("/api/sim")
+def sim_status():
+    return jsonify(sim.SIM.status())
+
+
+@app.post("/api/sim/start")
+def sim_start():
+    data = request.get_json(silent=True) or {}
+    return jsonify(sim.SIM.start(twin_dir(), gui=bool(data.get("gui", True))))
+
+
+@app.post("/api/sim/stop")
+def sim_stop():
+    return jsonify(sim.SIM.stop())
+
+
+def _down():
+    return jsonify({"errors": [_("The simulation is not running: start it on the Table screen.")]}), 503
+
+
+@app.get("/api/robot/state")
+def robot_state():
+    try:
+        return jsonify(sim.gateway("GET", "/state", timeout=2.0))
+    except sim.GatewayDown:
+        return _down()
+
+
+@app.post("/api/robot/<action>")
+def robot_act(action: str):
+    if action not in ROBOT_ACTIONS:
+        abort(404)
+    try:
+        return jsonify(sim.gateway("POST", f"/{action}", request.get_json(silent=True) or {}))
+    except sim.GatewayDown:
+        return _down()
+    except sim.GatewayRefused as refused:
+        return jsonify({"errors": [refused.message]}), refused.status
+
+
+@app.get("/api/robot/camera.jpg")
+def robot_camera():
+    try:
+        with urllib.request.urlopen(sim.GATEWAY + "/camera/overview.jpg", timeout=3) as r:
+            return Response(r.read(), mimetype="image/jpeg", headers={"Cache-Control": "no-store"})
+    except (urllib.error.URLError, OSError):
+        return _down()
+
+
+@app.get("/api/robot/camera.mjpg")
+def robot_stream():
+    try:
+        upstream = urllib.request.urlopen(sim.GATEWAY + "/camera/overview.mjpg", timeout=5)
+    except (urllib.error.URLError, OSError):
+        return _down()
+
+    def relay():
+        try:
+            while True:
+                chunk = upstream.read1(64 * 1024) if hasattr(upstream, "read1") else upstream.read(16 * 1024)
+                if not chunk:
+                    return
+                yield chunk
+        except (OSError, ValueError):
+            return
+        finally:
+            upstream.close()
+    return Response(stream_with_context(relay()), mimetype="multipart/x-mixed-replace; boundary=frame",
+                    headers={"Cache-Control": "no-store"})
 
 
 # ---------------------------------------------------------------- engine ----
@@ -155,6 +245,7 @@ def main(argv: list | None = None) -> int:
     ws.configure(user_dir=args.dir)
     lines = [f"  {f['label'].lower():<13} {f['path']}" for f in ws.folders()]
     edge_routes.start_background()  # edge layer
+    atexit.register(sim.SIM.stop)    # the server going away takes the simulation with it
     return server.serve(app, args, lines=lines)
 
 

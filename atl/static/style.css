@@ -292,3 +292,21 @@ button.danger.strip__estop { margin-right: 0; font-weight: 700; }
 .loop-head .actions { display: flex; flex-wrap: wrap; gap: var(--app-space-2); margin-top: var(--app-space-2); }
 /* a ground sensor before any reading: neither black nor white */
 .thymio-top .ground--none { fill: var(--app-bg-sunken); stroke-dasharray: 2 2; }
+
+/* starting the simulation: a checklist, then what it said if it failed */
+.sim-steps { list-style: none; padding: 0; margin: var(--app-space-2) 0 0; display: flex; flex-wrap: wrap; gap: var(--app-space-2) var(--app-space-4); font-size: 0.9rem; color: var(--app-text-muted); }
+.sim-steps li::before { content: "○"; margin-right: 0.4em; }
+.sim-steps li.now { color: var(--app-text); } .sim-steps li.now::before { content: "◌"; color: var(--app-accent); }
+.sim-steps li.done { color: var(--app-text); } .sim-steps li.done::before { content: "●"; color: var(--app-success); }
+.sim-log pre { max-height: 14rem; overflow: auto; font: 0.75rem var(--app-font-mono); background: var(--app-bg-sunken); padding: var(--app-space-2); border-radius: var(--app-radius-sm); }
+.sim-error { color: var(--app-danger); }
+
+/* the rolling plots, one per group of sensors; their technical names only when the facilitators show them */
+.plots { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--app-space-2) var(--app-space-3); margin: var(--app-space-3) 0; }
+.plots figure { margin: 0; }
+.plots figcaption { font-size: 0.75rem; color: var(--app-text-muted); margin-bottom: 2px; }
+.plots canvas { width: 100%; height: 70px; background: var(--app-bg-sunken); border: 1px solid var(--app-border); border-radius: var(--app-radius-sm); display: block; }
+.plots .sensor-name { display: none; }
+body:not(.names-off) .plots .sensor-name { display: inline; } body:not(.names-off) .plots .plain { display: none; }
+#sensor-values { font-family: var(--app-font-mono); font-size: 0.8rem; }
+.pad button:disabled, .behaviour:disabled { cursor: not-allowed; }

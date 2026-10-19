@@ -89,6 +89,13 @@
             <button id="btn-stop-sim" hidden>Stop the simulation</button>
             <button id="btn-reset" disabled>Reset the table</button>
           </div>
+          <ol class="sim-steps" id="sim-steps" hidden>
+            <li data-step="world">The table is written</li>
+            <li data-step="webots">Webots opens it</li>
+            <li data-step="body">The robot's body starts</li>
+            <li data-step="gateway">The sensors report</li>
+          </ol>
+          <details class="sim-log" id="sim-log" hidden><summary>What the simulation said</summary><pre id="sim-log-text"></pre></details>
         </div>
 
         <div class="table-grid">
@@ -108,7 +115,16 @@
               <g id="grounds"></g>
             </svg>
             <p class="note" id="sensor-values">No readings yet.</p>
-            <label class="toggle"><input type="checkbox" id="chk-names"> show the names</label>
+            <div class="plots" id="plots">
+              <figure><figcaption><span class="plain">around</span><span class="sensor-name">proximity · prox/horizontal</span></figcaption><canvas id="plot-prox" width="300" height="70"></canvas></figure>
+              <figure><figcaption><span class="plain">underneath</span><span class="sensor-name">ground · prox/ground</span></figcaption><canvas id="plot-ground" width="300" height="70"></canvas></figure>
+              <figure><figcaption><span class="plain">tilt and shake</span><span class="sensor-name">accelerometer · imu</span></figcaption><canvas id="plot-acc" width="300" height="70"></canvas></figure>
+              <figure><figcaption><span class="plain">wheels</span><span class="sensor-name">wheel encoders · wheels</span></figcaption><canvas id="plot-wheels" width="300" height="70"></canvas></figure>
+            </div>
+            <div class="actions">
+              <button type="button" id="btn-pause" aria-pressed="false">Pause the plots</button>
+              <label class="toggle"><input type="checkbox" id="chk-names"> show the names</label>
+            </div>
           </section>
         </div>
 

@@ -149,9 +149,168 @@ function markTheme() {
   });
 }
 
-// Until the simulation routes exist (step 6), the Table screen's controls say so instead of failing.
-const notYet = () => core.toast(tr("The simulation comes in the next steps of v0.1."));
-["#btn-start", "#btn-estop"].forEach((s) => $(s).addEventListener("click", notYet));
+/* ------------------------------------------------------------- simulation -- */
+// The virtual table (sim.py): start, a checklist while it comes up, then the robot live at 10 Hz.
+
+const say = (err) => core.toast((err.errors || [String(err)]).join("; "), true);
+async function post(path, body) {
+  try { return await core.api("POST", path, body || {}); } catch (err) { say(err); return null; }
+}
+const robot = (action, body) => post(`/api/robot/${action}`, body);
+
+const STEP_STATES = ["todo", "now", "done"];
+function drawSim(s) {
+  S.phase = s.phase;
+  const running = s.phase === "running", busy = s.phase === "starting" || s.phase === "stopping";
+  $("#sim-status").textContent = tr({
+    stopped: "The simulation is not running.", starting: "Starting the simulation…", running: "The simulation is running.",
+    stopping: "Stopping the simulation…", failed: "The simulation did not start." }[s.phase] || s.phase);
+  const hint = $("#sim-hint");
+  hint.classList.toggle("sim-error", s.phase === "failed");
+  hint.textContent = s.phase === "failed" ? tr(s.error)
+    : s.missing && s.missing.length && s.phase === "stopped" ? s.missing.map((m) => tr(m)).join(" · ")
+    : running ? tr("Move the box in the Webots window and watch the sensors.")
+    : s.phase === "stopped" ? (s.error ? tr(s.error) : tr("Start it: Webots opens the table with one Thymio II.")) : "";
+  $("#btn-start").hidden = running || busy;
+  $("#btn-start").disabled = !!(s.missing && s.missing.length);
+  $("#btn-stop-sim").hidden = !(running || s.phase === "starting");
+  $("#btn-reset").disabled = !running;
+  $("#sim-steps").hidden = !(s.phase === "starting" || s.phase === "failed");
+  document.querySelectorAll("#sim-steps li").forEach((li) => {
+    for (const st of STEP_STATES) li.classList.toggle(st, (s.steps || {})[li.dataset.step] === st);
+  });
+  $("#sim-log").hidden = !(s.phase === "failed" && s.log && s.log.length);
+  $("#sim-log-text").textContent = (s.log || []).join("\n");
+  $("#badge-sim").hidden = !running;
+  $("#dot-table").hidden = !running;
+  document.querySelectorAll("#behaviours .behaviour, #touch button, [data-clap], #btn-lift")
+    .forEach((b) => { b.disabled = !running; });
+  document.querySelectorAll("#pad button").forEach((b) => { b.disabled = !running || S.behaviour !== "none"; });
+  if (running && !S.camera) {
+    S.camera = true;
+    $("#overview").innerHTML = `<img src="/api/robot/camera.mjpg" alt="${core.esc(tr("The table seen from above, live"))}">`;
+  } else if (!running && S.camera) {
+    S.camera = false;
+    $("#overview").innerHTML = `<p class="empty">${core.esc(tr("The camera above the table shows here once the simulation runs."))}</p>`;
+    drawSensors([0, 0, 0, 0, 0, 0, 0], [null, null], null);
+    $("#sensor-values").textContent = tr("No readings yet.");
+  }
+}
+async function pollSim() {
+  try { drawSim(await core.api("GET", "/api/sim")); } catch (_) { /* the server restarts */ }
+}
+$("#btn-start").addEventListener("click", async () => { if (await post("/api/sim/start", { gui: true })) pollSim(); });
+$("#btn-stop-sim").addEventListener("click", async () => { await post("/api/sim/stop"); pollSim(); });
+$("#btn-reset").addEventListener("click", () => robot("reset"));
+setInterval(pollSim, 1000);
+pollSim();
+
+/* the robot live: sensors, plots, behaviour, E-stop */
+const PLOT_LEN = 120;                                    // 12 s at 10 Hz
+const PLOTS = { prox: [], ground: [], acc: [], wheels: [] };
+const PLOT_RANGE = { prox: [0, 4300], ground: [0, 1023], acc: [-12, 12], wheels: [-10, 10] };
+let plotsPaused = false;
+const css = (name) => getComputedStyle(document.documentElement).getPropertyValue(name).trim();
+function drawPlot(id, rows) {
+  const cv = $(`#plot-${id}`), g = cv.getContext("2d");
+  const [lo, hi] = PLOT_RANGE[id], W = cv.width, H = cv.height;
+  g.clearRect(0, 0, W, H);
+  if (!rows.length) return;
+  const colours = [1, 2, 3, 4, 5, 6, 1].map((k) => css(`--app-cat-${k}`));
+  for (let k = 0; k < rows[0].length; k++) {
+    g.beginPath();
+    g.strokeStyle = colours[k];
+    g.lineWidth = 1.4;
+    rows.forEach((r, i) => {
+      const x = (i / (PLOT_LEN - 1)) * W, y = H - ((Math.max(lo, Math.min(hi, r[k])) - lo) / (hi - lo)) * (H - 4) - 2;
+      if (i) g.lineTo(x, y); else g.moveTo(x, y);
+    });
+    g.stroke();
+  }
+}
+$("#btn-pause").addEventListener("click", (e) => {
+  plotsPaused = !plotsPaused;
+  e.target.setAttribute("aria-pressed", String(plotsPaused));
+  e.target.textContent = tr(plotsPaused ? "Resume the plots" : "Pause the plots");
+});
+
+const fmt = (xs, d = 0) => (xs || []).map((v) => Number(v).toFixed(d)).join(" ");
+function drawRobot(r) {
+  S.behaviour = (r.behaviour && r.behaviour.behaviour) || "none";
+  drawSensors(r.prox || [0, 0, 0, 0, 0, 0, 0], r.ground || [null, null], r.behaviour && S.behaviour !== "none" ? r.behaviour.colour : r.led);
+  const names = !document.body.classList.contains("names-off");
+  const label = (plain, name) => tr(names ? name : plain);
+  $("#sensor-values").innerHTML = [
+    `${core.esc(label("around", "proximity"))}: ${fmt(r.prox)}`,
+    `${core.esc(label("underneath", "ground"))}: ${fmt(r.ground)}`,
+    `${core.esc(label("tilt and shake", "accelerometer"))}: ${fmt(r.imu, 2)} m/s²`,
+    `${core.esc(label("wheels", "wheel encoders"))}: ${fmt(r.wheels, 2)} rad/s`].join("<br>");
+  if (!plotsPaused) {
+    const push = (k, v) => { if (v) { PLOTS[k].push(v); if (PLOTS[k].length > PLOT_LEN) PLOTS[k].shift(); } };
+    push("prox", r.prox); push("ground", r.ground); push("acc", r.imu); push("wheels", r.wheels);
+    for (const k of Object.keys(PLOTS)) drawPlot(k, PLOTS[k]);
+  }
+  document.querySelectorAll("#behaviours .behaviour").forEach((b) => b.setAttribute("aria-pressed", String(b.dataset.behaviour === S.behaviour)));
+  const doing = r.behaviour && S.behaviour !== "none" ? r.behaviour.doing : "";
+  const name = (BEHAVIOURS.find((b) => b.id === S.behaviour) || {}).name;
+  $("#behaviour-doing").textContent = doing ? `${tr(name)}: ${tr(doing)}` : "";
+  $("#strip-behaviour").textContent = name ? `${tr(name)}${doing ? " · " + tr(doing) : ""}` : "";
+  const byHand = S.behaviour === "none";
+  document.querySelectorAll("#pad button").forEach((b) => {
+    b.disabled = !byHand;
+    b.title = byHand ? "" : tr("A behaviour drives the robot: stop it to drive by hand");
+  });
+  S.estop = !!r.estop;
+  $("#badge-estop").hidden = !S.estop;
+  $("#btn-estop").textContent = tr(S.estop ? "Release the E-stop" : "E-stop");
+  S.lifted = !!r.lifted;
+  $("#btn-lift").textContent = tr(S.lifted ? "Put it down" : "Lift the robot");
+  $("#btn-lift").setAttribute("aria-pressed", String(S.lifted));
+}
+async function pollRobot() {
+  if (S.phase !== "running" || S.tab !== "table") return;
+  try { drawRobot(await core.api("GET", "/api/robot/state")); } catch (_) { /* a missed beat */ }
+}
+setInterval(pollRobot, 100);
+
+document.querySelectorAll("#behaviours .behaviour").forEach((b) =>
+  b.addEventListener("click", () => robot("behaviour", { name: b.dataset.behaviour })));
+document.querySelectorAll("#touch [data-button]").forEach((b) =>
+  b.addEventListener("click", () => robot("button", { name: b.dataset.button })));
+document.querySelectorAll("[data-clap]").forEach((b) =>
+  b.addEventListener("click", () => robot("clap", { n: Number(b.dataset.clap) })));
+$("#btn-lift").addEventListener("click", () => robot("lift", { up: !S.lifted }));
+$("#btn-estop").addEventListener("click", () => {
+  if (S.phase !== "running") return core.toast(tr("The simulation is not running: start it on the Table screen."));
+  robot("estop", { on: !S.estop });
+});
+
+/* driving by hand: the command again every 200 ms while held, a stop on release (the driver's watchdog: 0.5 s) */
+const DRIVE = { fwd: [0.1, 0], back: [-0.1, 0], left: [0, 1.6], right: [0, -1.6], stop: [0, 0] };
+let driving = null;
+function driveStart(dir) {
+  driveStop(false);
+  const [linear, angular] = DRIVE[dir];
+  const send = () => robot("drive", { linear, angular });
+  send();
+  if (dir !== "stop") driving = setInterval(send, 200);
+}
+function driveStop(send = true) {
+  if (driving) { clearInterval(driving); driving = null; if (send) robot("drive", { linear: 0, angular: 0 }); }
+}
+document.querySelectorAll("#pad [data-drive]").forEach((b) => {
+  b.addEventListener("pointerdown", (e) => { e.preventDefault(); driveStart(b.dataset.drive); });
+  for (const ev of ["pointerup", "pointerleave", "pointercancel"]) b.addEventListener(ev, () => driveStop());
+});
+const KEYS = { ArrowUp: "fwd", ArrowDown: "back", ArrowLeft: "left", ArrowRight: "right" };
+window.addEventListener("keydown", (e) => {
+  if (!KEYS[e.key] || e.repeat || S.tab !== "table" || S.phase !== "running" || S.behaviour !== "none") return;
+  if (e.target.closest && e.target.closest("input, textarea, select")) return;
+  e.preventDefault();
+  driveStart(KEYS[e.key]);
+});
+window.addEventListener("keyup", (e) => { if (KEYS[e.key]) driveStop(); });
+window.addEventListener("blur", () => driveStop());
 
 window.addEventListener("hashchange", () => showTab(location.hash.slice(1)));
 $("#rail-toggle").addEventListener("click", () => railOpen($("#rail").classList.contains("app-rail--closed"), true));
