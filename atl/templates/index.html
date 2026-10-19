@@ -1,43 +1,188 @@
 {% extends "core/_base.html" %}
 
-{#- The tool's page. The header (theme, About, Restart, Stop) and core.js come
-    from core/_base.html; this file fills the blocks. -#}
+{#- atl-ide's page, in the D-LAB-5 app shell (Rail, ShellHeader, Hero, Panel; classes .app-*,
+    tokens in style.css), as digitalhome-twin-edge-WormBed-5 uses it. Core's own header
+    (core/_base.html) stays in the page but hidden: the rail's buttons call the same core functions. -#}
+
+{% set ico = 'width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"' %}
 
 {% block head %}
+<link rel="stylesheet" href="/edge-static/edge.css">
 <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 {% endblock %}
 
-{% block toolbar %}
-  <button id="btn-new">New</button>
-  <button id="btn-save" class="primary">Save</button>
-  <button id="btn-delete" class="danger">Delete</button>
-{% endblock %}
-
 {% block main %}
-<main class="layout">
+<div class="app-shell app-shell--railed" id="shell">
+  <nav class="app-rail" id="rail" aria-label="atl-ide">
+    <a class="app-rail__brand" href="/" aria-label="atl-ide">
+      <span class="app-mark" aria-hidden="true"><svg width="20" height="20" viewBox="-100 -100 200 200" fill="currentColor" aria-hidden="true"><polygon points="8.03,-90.17 79.58,-48.86 39.08,-3.13 27.62,-31.5"/><polygon points="82.1,-38.13 82.1,44.49 22.26,32.27 41.09,8.17"/><polygon points="74.07,52.04 2.52,93.35 -16.83,35.41 13.48,39.67"/><polygon points="-8.03,90.17 -79.58,48.86 -39.08,3.13 -27.62,31.5"/><polygon points="-82.1,38.13 -82.1,-44.49 -22.26,-32.27 -41.09,-8.17"/><polygon points="-74.07,-52.04 -2.52,-93.35 16.83,-35.41 -13.48,-39.67"/></svg></span>
+      <span>atl<span class="app-rail__brandaccent">-ide</span></span>
+    </a>
 
-  <aside class="side">
-    <h3>Notes</h3>
-    <div id="note-list" class="note-list"><p class="note">loading…</p></div>
-  </aside>
-  <section class="editor">
-    <label>Title <input type="text" id="f-title" placeholder="What is this note about?"></label>
-    <label>Name <input type="text" id="f-name" placeholder="file name, e.g. meeting-notes"></label>
-    <label>Body <textarea id="f-body" rows="12"></textarea></label>
-    <label>Tags <input type="text" id="f-tags" placeholder="comma, separated"></label>
-    <div class="actions">
-      <button id="btn-summarise">Summarise</button>
-      <span id="status" class="note"></span>
+    <div class="app-rail__section">
+      <h2 class="app-rail__sectionlabel">Table</h2>
+      <ul class="app-rail__items">
+        <li><a class="app-rail__item tab" href="#table" data-tab="table"><svg {{ ico|safe }}><rect x="3" y="8" width="18" height="4" rx="1"/><path d="M6 12v8M18 12v8"/><circle cx="12" cy="5" r="2"/></svg><span>Table</span><span class="app-rail__dot" id="dot-table" hidden></span></a></li>
+        <li><a class="app-rail__item tab" href="#scene" data-tab="scene"><svg {{ ico|safe }}><path d="M3 20h18"/><rect x="5" y="12" width="5" height="8"/><path d="m13 20 3-9 3 9"/></svg><span>Scene</span></a></li>
+        <li><a class="app-rail__item tab" href="#program" data-tab="program"><svg {{ ico|safe }}><path d="M4 6h7v4H4zM13 14h7v4h-7z"/><path d="M11 8h2a2 2 0 0 1 2 2v4"/></svg><span>Program</span></a></li>
+      </ul>
     </div>
-    <pre id="summary" class="summary" hidden></pre>
-  </section>
-  <section id="edge-connections" class="panel"></section>  <!-- edge layer -->
-  <section id="edge-chat" class="panel"></section>
-</main>
+
+    <div class="app-rail__section">
+      <h2 class="app-rail__sectionlabel">More</h2>
+      <ul class="app-rail__items">
+        <li><a class="app-rail__item tab" href="#connections" data-tab="connections"><svg {{ ico|safe }}><path d="M9 15l6-6"/><path d="M11 6l1-1a4 4 0 0 1 6 6l-1 1"/><path d="M13 18l-1 1a4 4 0 0 1-6-6l1-1"/></svg><span>Link</span><span class="app-rail__dot" id="dot-linked" hidden></span></a></li>
+        <li><a class="app-rail__item tab" href="#chat" data-tab="chat"><svg {{ ico|safe }}><path d="M4 5h16a1 1 0 0 1 1 1v10a1 1 0 0 1-1 1h-9l-5 4v-4H4a1 1 0 0 1-1-1V6a1 1 0 0 1 1-1Z"/><path d="M8 10h8M8 13h5"/></svg><span>Chat</span></a></li>
+      </ul>
+    </div>
+
+    <div class="rail-foot">
+      <div class="app-rail__section">
+        <h2 class="app-rail__sectionlabel">This PC</h2>
+        <ul class="app-rail__items">
+          <li><button type="button" id="rail-agent" class="app-rail__item app-rail__item--button"><svg {{ ico|safe }}><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M4.2 4.2l2.1 2.1M17.7 17.7l2.1 2.1M2 12h3M19 12h3M4.2 19.8l2.1-2.1M17.7 6.3l2.1-2.1"/></svg><span>Connect an agent</span></button></li>
+          <li><button type="button" id="rail-about" class="app-rail__item app-rail__item--button"><svg {{ ico|safe }}><circle cx="12" cy="12" r="9"/><path d="M12 11v5M12 8h.01"/></svg><span id="rail-about-label">About</span></button></li>
+        </ul>
+      </div>
+      <div class="rail-actions">
+        <button type="button" id="rail-restart" class="app-linkbutton">Restart</button>
+        <button type="button" id="rail-stop" class="app-linkbutton app-linkbutton--danger">Stop server</button>
+      </div>
+      <div class="app-seg" role="group" aria-label="Appearance" id="theme-seg">
+        <button type="button" class="app-seg__option" data-theme-pick="dark">☾ dark</button>
+        <button type="button" class="app-seg__option" data-theme-pick="light">☀ light</button>
+      </div>
+      <div class="app-seg" role="group" aria-label="Language" id="lang-seg">
+        {% for l in i18n.langs %}<button type="button" class="app-seg__option" data-lang="{{ l.id }}" title="{{ l.name }}" lang="{{ l.id }}">{{ l.id|upper }}</button>{% endfor %}
+      </div>
+      <p class="app-rail__note">Try it. Break it. Fix it. Show it. © 2026 Atelier-5 · GPL-3.0</p>
+    </div>
+  </nav>
+
+  <div class="app-shell__body">
+    <header class="app-shell__header">
+      <button type="button" id="rail-toggle" class="app-linkbutton app-shell__railtoggle" aria-label="Hide menu" aria-expanded="true">☰</button>
+      <span class="app-shell__title">atl-ide</span>
+      <span class="app-shell__meta" id="shell-meta">Thymio II on the virtual table</span>
+      <span class="app-shell__spacer"></span>
+      <span class="strip" id="strip" aria-live="polite">
+        <span class="strip__item" id="strip-behaviour" title="The behaviour that runs"></span>
+      </span>
+      <span class="app-badge badge-estop" id="badge-estop" hidden>E-stop</span>
+      <span class="app-badge badge-sim" id="badge-sim" hidden>Simulation</span>
+      <span class="app-badge badge-agent" id="badge-agent" hidden>Agent connected</span>
+      <button id="btn-estop" class="danger strip__estop" title="Hold the motors until released">E-stop</button>
+    </header>
+
+    <main class="app-shell__main edge-main">
+
+      <!-- Table: the spec's one screen. Robot, Sensors, Behaviour, Act on the robot. -->
+      <section id="tab-table" class="tabpane view">
+        <div class="loop-head">
+          <p class="app-hero__eyebrow">Discover · the virtual table</p>
+          <h1 class="app-hero__title" id="sim-status">The simulation is not running.</h1>
+          <p class="note" id="sim-hint">Start it: Webots opens the table with one Thymio II.</p>
+          <div class="actions">
+            <button id="btn-start" class="primary">Start the simulation</button>
+            <button id="btn-stop-sim" hidden>Stop the simulation</button>
+            <button id="btn-reset" disabled>Reset the table</button>
+          </div>
+        </div>
+
+        <div class="table-grid">
+          <section class="panel" aria-labelledby="h-robot">
+            <h2 id="h-robot">Robot</h2>
+            <div class="overview" id="overview"><p class="empty">The camera above the table shows here once the simulation runs.</p></div>
+          </section>
+
+          <section class="panel" aria-labelledby="h-sensors">
+            <h2 id="h-sensors">Sensors</h2>
+            <svg class="thymio-top" id="thymio-top" viewBox="-110 -95 220 200" role="img" aria-label="The Thymio from above, with what its sensors read">
+              <g id="bars"></g>
+              <path class="body" d="M -55 -48 L 30 -48 Q 72 -46 76 0 Q 72 46 30 48 L -55 48 Z" transform="rotate(-90)"/>
+              <rect class="wheel" x="-62" y="-20" width="9" height="40" rx="3"/>
+              <rect class="wheel" x="53" y="-20" width="9" height="40" rx="3"/>
+              <circle class="led" id="led-top" cx="0" cy="8" r="13" fill="none"/>
+              <g id="grounds"></g>
+            </svg>
+            <p class="note" id="sensor-values">No readings yet.</p>
+            <label class="toggle"><input type="checkbox" id="chk-names"> show the names</label>
+          </section>
+        </div>
+
+        <section class="panel" aria-labelledby="h-behaviour">
+          <h2 id="h-behaviour">Behaviour</h2>
+          <div class="behaviours" id="behaviours"></div>
+          <p class="note" id="behaviour-doing"></p>
+        </section>
+
+        <section class="panel" aria-labelledby="h-act">
+          <h2 id="h-act">Act on the robot</h2>
+          <div class="acts">
+            <div><h3>Drive</h3>
+              <div class="pad" id="pad">
+                <button class="pad-n" data-drive="fwd" aria-label="Forward">▲</button>
+                <button class="pad-w" data-drive="left" aria-label="Left">◀</button>
+                <button class="pad-c" data-drive="stop" aria-label="Stop">■</button>
+                <button class="pad-e" data-drive="right" aria-label="Right">▶</button>
+                <button class="pad-s" data-drive="back" aria-label="Back">▼</button>
+              </div></div>
+            <div><h3>The robot's buttons</h3>
+              <div class="pad" id="touch">
+                <button class="pad-n" data-button="forward" aria-label="Forward button">⌃</button>
+                <button class="pad-w" data-button="left" aria-label="Left button">‹</button>
+                <button class="pad-c" data-button="center" aria-label="Centre button">●</button>
+                <button class="pad-e" data-button="right" aria-label="Right button">›</button>
+                <button class="pad-s" data-button="backward" aria-label="Backward button">⌄</button>
+              </div></div>
+            <div><h3>Clap</h3>
+              <div class="actions"><button data-clap="1">1×</button><button data-clap="2">2×</button><button data-clap="3">3×</button></div></div>
+            <div><h3>Lift</h3>
+              <div class="actions"><button id="btn-lift" aria-pressed="false">Lift the robot</button></div></div>
+          </div>
+        </section>
+      </section>
+
+      <!-- Scene: the table's world and its objects; later Blockly programs the scene too -->
+      <section id="tab-scene" class="tabpane view" hidden>
+        <p class="app-hero__eyebrow">Scene</p>
+        <h1 class="app-hero__title">The virtual table</h1>
+        <div class="table-grid">
+          <section class="panel"><h2>The world</h2>
+            <p>A white table, 1.2 × 0.8 m, open edges; a black line loop; a carton box and a wooden block; one Thymio II.</p>
+          </section>
+          <section class="panel"><h2>Change the scene</h2>
+            <p class="coming">Move objects in the Webots window, or with blocks: coming in a later version.</p>
+          </section>
+        </div>
+      </section>
+
+      <!-- Program: Blockly comes later -->
+      <section id="tab-program" class="tabpane view" hidden>
+        <p class="app-hero__eyebrow">Program</p>
+        <h1 class="app-hero__title">Program the robot</h1>
+        <p class="coming">Blocks to program the Thymio and the scene: coming in a later version. For now, the six built-in behaviours run on the Table screen.</p>
+      </section>
+
+      <section id="tab-connections" class="tabpane view" hidden>
+        <p class="app-hero__eyebrow">Link</p>
+        <h1 class="app-hero__title">The Atelier-5 cloud</h1>
+        <p class="note">Linking to a cloud comes later. Everything here works on this PC alone.</p>
+        <section id="edge-connections" class="panel"></section>
+      </section>
+
+      <section id="tab-chat" class="tabpane view" hidden>
+        <p class="app-hero__eyebrow">Chat</p>
+        <h1 class="app-hero__title">Ask an agent</h1>
+        <section id="edge-chat" class="panel"></section>
+      </section>
+    </main>
+  </div>
+</div>
 {% endblock %}
 
 {% block scripts %}
+<script>window.I18N_BOOT = {{ i18n|tojson }};</script>
 <script src="{{ url_for('static', filename='app.js') }}"></script>
-{% endblock %}
-<link rel="stylesheet" href="/edge-static/edge.css">
 <script src="/edge-static/edge.js" defer></script>
+{% endblock %}

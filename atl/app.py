@@ -22,6 +22,7 @@ from typing import Optional
 from flask import abort, jsonify, render_template, request
 
 from . import engine as engine
+from . import i18n
 from .core import server
 from .core import workspace as ws
 
@@ -41,9 +42,27 @@ def body() -> dict:
 
 # ------------------------------------------------------------------ page ----
 
+@app.before_request
+def _language() -> None:
+    """Every request speaks the person's language: their choice on the page, else their browser's."""
+    i18n.use(i18n.pick(request.cookies.get("lang"), request.headers.get("Accept-Language")))
+
+
+def _i18n_boot() -> dict:
+    """The page's language, the languages there are, and the catalog: in the page, so it draws translated at once."""
+    lang = i18n.current()
+    return {"lang": lang, "langs": [{"id": l, "name": i18n.NAMES[l]} for l in i18n.LANGS], "catalog": i18n.catalog(lang)}
+
+
 @app.get("/")
 def index() -> str:
-    return render_template("index.html")
+    return render_template("index.html", i18n=_i18n_boot())
+
+
+@app.get("/api/i18n")
+def i18n_catalog():
+    """The page's language and its catalog (English text -> translation), and the languages there are."""
+    return jsonify(_i18n_boot())
 
 
 @app.get("/favicon.ico")

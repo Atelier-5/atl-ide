@@ -42,7 +42,7 @@ packages = ["atl", "atl.core", "atl.edge", "atl.edge.bridges"]
 # skill over without the repository. tests/test_core.py checks this list.
 [tool.setuptools.package-data]
 "atl.edge" = ["static/*", "ontology/*/*.ttl", "ontology/*.ttl"]  # edge layer
-atl = ["VERSION", "templates/*.html", "static/*", "skill/*.md", "shared/*.json"]
+atl = ["VERSION", "templates/*.html", "static/*", "skill/*.md", "shared/*.json", "i18n/*.json"]
 "atl.core" = ["static/*", "templates/core/*.html"]
 
 [tool.setuptools.dynamic]
