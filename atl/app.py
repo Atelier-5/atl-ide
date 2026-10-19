@@ -26,6 +26,9 @@ from .core import server
 from .core import workspace as ws
 
 app = server.create_app(__name__)
+
+from .edge import routes as edge_routes  # edge layer
+edge_routes.install(app)
 app.config["MAX_CONTENT_LENGTH"] = 2 * 1024 * 1024
 
 
@@ -120,6 +123,7 @@ def main(argv: list | None = None) -> int:
 
     ws.configure(user_dir=args.dir)
     lines = [f"  {f['label'].lower():<13} {f['path']}" for f in ws.folders()]
+    edge_routes.start_background()  # edge layer
     return server.serve(app, args, lines=lines)
 
 

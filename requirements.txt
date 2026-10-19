@@ -1,3 +1,6 @@
 flask>=3.0
 # only mcp_server.py needs it (agent access); the page itself needs Flask alone
 mcp>=2,<3
+# edge layer
+rdflib>=7.0
+pyshacl>=0.26

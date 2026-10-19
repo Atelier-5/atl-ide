@@ -1,0 +1,43 @@
+@prefix app:     <https://template.dlab5.net/ontology#> .
+@prefix owl:     <http://www.w3.org/2002/07/owl#> .
+@prefix rdfs:    <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema:  <https://schema.org/> .
+
+# ============================================================
+# The T-Box, v0.1: a PLACEHOLDER to replace with your domain.
+#
+# A thin layer over standard vocabularies. Define only what they do not
+# have, and say how the standards are used here. Each space keeps an A-Box
+# (instances) of this vocabulary, synced with the tenant's edges (ADR-0007).
+#
+# Labels: English is the master and is required (shapes/app-shapes.ttl);
+# German and French are given for everything a person sees.
+#
+# After a change: node backend/scripts/sync-ontology.mjs, so the Lambdas
+# validate against the same file.
+# ============================================================
+
+<https://template.dlab5.net/ontology>
+    a owl:Ontology ;
+    rdfs:label "Template ontology"@en , "Vorlagen-Ontologie"@de , "Ontologie du modèle"@fr ;
+    dcterms:description "A placeholder: things a tenant knows about, of a type from a concept scheme, in a place."@en ;
+    owl:versionInfo "0.1.0" .
+
+app:Thing a owl:Class ;
+    rdfs:subClassOf schema:Thing ;
+    rdfs:label "Thing"@en , "Ding"@de , "Chose"@fr ;
+    rdfs:comment "Something the tenant knows about. Replace with your domain's classes."@en .
+
+app:Place a owl:Class ;
+    rdfs:subClassOf schema:Place ;
+    rdfs:label "Place"@en , "Ort"@de , "Lieu"@fr .
+
+app:thingType a owl:ObjectProperty ;
+    rdfs:domain app:Thing ;
+    rdfs:label "type"@en , "Art"@de , "type"@fr ;
+    rdfs:comment "A concept from app:ThingTypes (tbox/app-concepts.ttl): new types are data, not code."@en .
+
+app:locatedIn a owl:ObjectProperty ;
+    rdfs:range app:Place ;
+    rdfs:label "located in"@en , "befindet sich in"@de , "se trouve dans"@fr .

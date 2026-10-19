@@ -238,5 +238,4 @@ temp/
 # the user's own documents never belong in the repository
 /mydocs/
 
-# spike: throwaway test world (step 0)
-spike/
+

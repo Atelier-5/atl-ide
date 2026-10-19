@@ -1,0 +1,16 @@
+# Changes here will be overwritten by Copier; NEVER EDIT MANUALLY
+_commit: '7237415'
+_src_path: gh:d-lab-5/template-dlab5-edge
+cloud_name: the Atelier-5 cloud
+edge_kind: robot
+env_prefix: ATL_IDE
+github_org: Atelier-5
+package_name: atl
+port: 8780
+repo_name: atl-ide
+space_noun: group
+tenant_noun: workshop
+title: atl-ide
+tool_name: atl-ide
+with_mcp: true
+with_workspace: true

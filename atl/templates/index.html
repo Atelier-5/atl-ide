@@ -31,9 +31,13 @@
     </div>
     <pre id="summary" class="summary" hidden></pre>
   </section>
+  <section id="edge-connections" class="panel"></section>  <!-- edge layer -->
+  <section id="edge-chat" class="panel"></section>
 </main>
 {% endblock %}
 
 {% block scripts %}
 <script src="{{ url_for('static', filename='app.js') }}"></script>
 {% endblock %}
+<link rel="stylesheet" href="/edge-static/edge.css">
+<script src="/edge-static/edge.js" defer></script>

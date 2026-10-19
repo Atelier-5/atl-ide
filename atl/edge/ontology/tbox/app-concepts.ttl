@@ -1,0 +1,19 @@
+@prefix app:     <https://template.dlab5.net/ontology#> .
+@prefix skos:    <http://www.w3.org/2004/02/skos/core#> .
+
+# ============================================================
+# Concept schemes (SKOS), v0.1: a PLACEHOLDER.
+#
+# New types are added HERE, as data: no code or schema change. Each concept
+# needs an English prefLabel (the master); German and French are expected.
+# ============================================================
+
+app:ThingTypes a skos:ConceptScheme ;
+    skos:prefLabel "Types of things"@en , "Arten von Dingen"@de , "Types de choses"@fr ;
+    skos:hasTopConcept app:Device , app:Document .
+
+app:Device a skos:Concept ; skos:inScheme app:ThingTypes ; skos:topConceptOf app:ThingTypes ;
+    skos:prefLabel "Device"@en , "Gerät"@de , "Appareil"@fr .
+
+app:Document a skos:Concept ; skos:inScheme app:ThingTypes ; skos:topConceptOf app:ThingTypes ;
+    skos:prefLabel "Document"@en , "Dokument"@de , "Document"@fr .

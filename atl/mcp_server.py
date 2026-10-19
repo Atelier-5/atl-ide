@@ -46,6 +46,9 @@ server = MCPServer(
 
 web.add_core_tools(server)
 
+from .edge.mcp_tools import add_edge_tools  # edge layer
+add_edge_tools(server)
+
 
 @server.tool()
 def validate_note(note: dict) -> list[str]:

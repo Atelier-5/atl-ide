@@ -1,0 +1,37 @@
+@prefix app:    <https://template.dlab5.net/ontology#> .
+@prefix appsh:  <https://template.dlab5.net/shapes#> .
+@prefix sh:     <http://www.w3.org/ns/shacl#> .
+@prefix skos:   <http://www.w3.org/2004/02/skos/core#> .
+@prefix schema: <https://schema.org/> .
+
+# ============================================================
+# SHACL shapes, v0.1: what an A-Box must satisfy. Validate an A-Box
+# TOGETHER with tbox/app-concepts.ttl, so a type can be checked against its
+# scheme. The cloud refuses an A-Box that does not conform (ADR-0007).
+# ============================================================
+
+appsh:InThingTypes a sh:NodeShape ;
+    sh:property [ sh:path skos:inScheme ; sh:hasValue app:ThingTypes ] .
+
+appsh:ThingShape a sh:NodeShape ;
+    sh:targetClass app:Thing ;
+    sh:property [
+        sh:path schema:name ;
+        sh:minCount 1 ;
+        sh:message "A thing needs a name."@en ;
+    ] ;
+    sh:property [
+        sh:path app:thingType ;
+        sh:maxCount 1 ;
+        sh:node appsh:InThingTypes ;
+        sh:message "A thing's type is one concept from app:ThingTypes."@en ;
+    ] ;
+    sh:property [
+        sh:path app:locatedIn ;
+        sh:class app:Place ;
+        sh:message "A thing is located in a place."@en ;
+    ] .
+
+appsh:PlaceShape a sh:NodeShape ;
+    sh:targetClass app:Place ;
+    sh:property [ sh:path schema:name ; sh:minCount 1 ; sh:message "A place needs a name."@en ] .

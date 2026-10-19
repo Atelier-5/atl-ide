@@ -1,0 +1,15 @@
+/* SPDX-License-Identifier: GPL-3.0-or-later — the edge layer's panels; uses the page's colours */
+#edge-connections, #edge-chat { margin: 1rem 0; }
+.edge-conns { list-style: none; padding: 0; display: grid; gap: .4rem; }
+.edge-conn { display: flex; flex-wrap: wrap; align-items: center; gap: .4rem; }
+.edge-conn.is-current b { text-decoration: underline; }
+.edge-dot.ok { color: #2e9d5b; } .edge-dot.off { color: #999; }
+.edge-tag { font-size: .8em; padding: .05rem .4rem; border: 1px solid currentColor; border-radius: 999px; opacity: .8; }
+.edge-tag.err, .err { color: #c0392b; opacity: 1; }
+.edge-link { display: flex; flex-wrap: wrap; gap: .4rem; margin-top: .6rem; }
+.edge-link input { min-width: 0; flex: 1 1 12rem; }
+.edge-muted { opacity: .7; }
+.edge-chat__log { max-height: 50vh; overflow-y: auto; display: grid; gap: .3rem; }
+.edge-chat__me { font-weight: 600; } .edge-chat__them { white-space: pre-wrap; }
+.edge-chat__proposal { border-left: 3px solid #e0a800; padding-left: .5rem; }
+.edge-chat__ask { display: flex; gap: .4rem; } .edge-chat__ask textarea { flex: 1; min-width: 0; }
