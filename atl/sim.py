@@ -190,9 +190,13 @@ class Simulation:
 
         self._step("webots", "now")
         self._remove_container()                 # one left over from a crash would hold the name
-        log = open(twin / "webots.log", "w")
+        (twin / "webots.log").write_bytes(b"")
+        # a pipe, copied into webots.log: a file handed over from a snap's terminal (PyCharm's) reaches the
+        # Webots snap as /apparmor/.null, and the table would never be seen ready
         self.webots = subprocess.Popen(webots_command(webots_binary(), twin / "table.wbt", self.gui), cwd=twin, env=webots_env(),
-                                       stdout=log, stderr=subprocess.STDOUT, start_new_session=True)
+                                       stdout=subprocess.PIPE, stderr=subprocess.STDOUT, start_new_session=True)
+        threading.Thread(target=self._copy_log, args=(self.webots.stdout, twin / "webots.log"),
+                         name="sim-webots-log", daemon=True).start()
         waiting = "Waiting for local or remote connection"
         end = time.time() + WAIT_WEBOTS
         while time.time() < end:
@@ -232,6 +236,14 @@ class Simulation:
         with self.lock:
             self.phase = "running"
         threading.Thread(target=self._watch, name="sim-watch", daemon=True).start()
+
+    @staticmethod
+    def _copy_log(stream, path: Path):
+        with open(path, "ab") as log:
+            for line in iter(stream.readline, b""):
+                log.write(line)
+                log.flush()
+        stream.close()
 
     def _follow_body_log(self):
         with open(self.twin / "body.log", "a") as blog:
