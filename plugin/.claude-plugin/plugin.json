@@ -1,0 +1,11 @@
+{
+  "name": "atl-ide",
+  "version": "0.1.0",
+  "description": "atl-ide: the Atelier-5 robotics IDE, a Thymio II twin in Webots over ROS 2",
+  "author": {
+    "name": "Atelier-5"
+  },
+  "homepage": "https://github.com/Atelier-5/atl-ide",
+  "repository": "https://github.com/Atelier-5/atl-ide",
+  "license": "GPL-3.0-or-later"
+}

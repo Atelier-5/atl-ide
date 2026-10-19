@@ -1,0 +1,198 @@
+/* SPDX-License-Identifier: GPL-3.0-or-later
+   Copyright (C) 2026 D-LAB-5
+
+   core.css — the chrome every D-LAB-5 tool shares: theme tokens, the header,
+   buttons, dialogs, the About box, the toast and the "stopped" screen.
+
+   Core-owned. A tool's own static/style.css loads after this one, so anything
+   there wins; add tokens there rather than editing these. */
+
+:root {
+  color-scheme: light dark;
+  --bg: #f6f7f9;
+  --paper: #ffffff;
+  --panel: #ffffff;
+  --panel-2: #eef1f4;
+  --ink: #16191d;
+  --muted: #5c6b78;
+  --edge: #d6dde3;
+  --accent: #0a7fb8;
+  --accent-ink: #ffffff;
+  --danger: #c62a1e;
+  --warn: #b45309;
+  --ok: #157a45;
+  --radius: 8px;
+  --font: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  --mono: ui-monospace, "SF Mono", "Cascadia Mono", Menlo, Consolas, monospace;
+}
+
+/* Three states, the usual shape: no data-theme follows the system, and an
+   explicit one wins in both directions. The dark tokens are written twice
+   rather than once, because a media query cannot be told to stand down. */
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #11161b; --paper: #161d23; --panel: #182129; --panel-2: #202b34;
+    --ink: #e8eef3; --muted: #93a3af; --edge: #2c3a45;
+    --accent: #4cc2ef; --accent-ink: #0d1015;
+    --danger: #ff8a80; --warn: #f6a821; --ok: #6cd39a;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #11161b; --paper: #161d23; --panel: #182129; --panel-2: #202b34;
+  --ink: #e8eef3; --muted: #93a3af; --edge: #2c3a45;
+  --accent: #4cc2ef; --accent-ink: #0d1015;
+  --danger: #ff8a80; --warn: #f6a821; --ok: #6cd39a;
+}
+
+* { box-sizing: border-box; }
+body {
+  margin: 0; background: var(--bg); color: var(--ink);
+  font: 14px/1.5 var(--font);
+}
+[hidden] { display: none !important; }
+
+/* ------------------------------------------------------------- header -- */
+.bar {
+  display: flex; align-items: center; gap: 8px; flex-wrap: wrap;
+  padding: 8px 14px; background: var(--panel-2);
+  border-bottom: 1px solid var(--edge);
+  position: sticky; top: 0; z-index: 10;
+}
+.brand {
+  font-weight: 700; letter-spacing: .06em; text-transform: uppercase;
+  font-size: 12px; color: var(--muted);
+}
+button.brand { border: 0; background: transparent; padding: 0 4px 0 0; }
+.spacer { flex: 1 1 auto; }
+.sep { width: 1px; height: 20px; background: var(--edge); }
+
+button {
+  font: inherit; color: var(--ink); background: var(--paper);
+  border: 1px solid var(--edge); border-radius: 6px;
+  padding: 5px 11px; cursor: pointer;
+}
+button:hover:not(:disabled) { border-color: var(--accent); }
+button:disabled { opacity: .45; cursor: default; }
+button.primary { background: var(--accent); border-color: var(--accent); color: var(--accent-ink); font-weight: 600; }
+button.danger { color: var(--danger); }
+button.ghost { background: transparent; border-color: transparent; padding: 2px 6px; }
+button.stop { color: #fff; background: var(--danger); border-color: var(--danger); }
+button.stop:hover:not(:disabled) { filter: brightness(1.1); border-color: var(--danger); }
+/* Restart is not destructive like Stop, but it does take the server away. */
+button.warn-btn { color: var(--warn); border-color: color-mix(in srgb, var(--warn) 55%, var(--edge)); }
+button.warn-btn:hover:not(:disabled) { border-color: var(--warn); }
+
+.toggle { display: inline-flex; align-items: center; gap: 5px; color: var(--muted); }
+select, input[type="text"], input[type="search"], textarea {
+  font: inherit; color: var(--ink); background: var(--paper);
+  border: 1px solid var(--edge); border-radius: 6px; padding: 4px 6px;
+}
+.note { margin: 0; color: var(--muted); font-size: 12px; }
+/* core's own markup uses .core-note, so a tool's .note can mean something else */
+.core-note { margin: 0; color: var(--muted); font-size: 12px; background: none; border: 0; padding: 0; }
+code, pre { font-family: var(--mono); }
+
+/* -------------------------------------------------------------- dialog -- */
+dialog.core-dialog {
+  border: 1px solid var(--edge); border-radius: 10px;
+  background: var(--paper); color: var(--ink);
+  padding: 0; min-width: min(380px, 92vw); max-width: min(560px, 92vw);
+}
+dialog.core-dialog::backdrop { background: rgb(0 0 0 / .45); }
+.core-dialog form { padding: 16px; display: flex; flex-direction: column; gap: 10px; }
+.core-dialog h2 { margin: 0; font-size: 15px; }
+.core-dialog .actions { display: flex; justify-content: flex-end; gap: 8px; flex-wrap: wrap; }
+
+/* --------------------------------------------------------------- about -- */
+.about-logo {
+  display: block; margin: 0 auto 10px; border-radius: 12px;
+  /* the logo carries its own near-white plate, so it needs one on a dark
+     ground too or it floats as a pale square with ragged edges */
+  background: #f5f6f7; padding: 4px;
+}
+.about-lead { margin: 0 0 12px; color: var(--muted); text-align: center; }
+.about-grid {
+  display: grid; grid-template-columns: max-content 1fr;
+  gap: 6px 14px; margin: 0 0 10px;
+}
+.about-grid dt { color: var(--muted); font-size: 12px; }
+.about-grid dd { margin: 0; font-family: var(--mono); font-size: 12px; overflow-wrap: anywhere; }
+.about-grid a, .about-foot a { color: var(--accent); }
+.about-disclaimer {
+  margin: 4px 0 0; padding: 8px 10px; font-size: 12px;
+  border-left: 3px solid var(--warn); background: var(--panel-2); border-radius: 4px;
+}
+.about-log {
+  margin: 8px 0 0; padding: 8px; max-height: 150px; overflow: auto;
+  background: var(--panel-2); border: 1px solid var(--edge); border-radius: 6px;
+  font: 11px/1.5 var(--mono); white-space: pre-wrap; color: var(--muted);
+}
+.about-foot {
+  margin: 12px 0 0; padding-top: 10px; border-top: 1px solid var(--edge);
+  color: var(--muted); font-size: 11px; text-align: center; line-height: 1.7;
+}
+.about-foot a { text-decoration: none; }
+.about-h {
+  margin: 12px 0 6px; font-size: 11px; font-weight: 600; letter-spacing: .06em;
+  text-transform: uppercase; color: var(--muted);
+}
+.svc { list-style: none; margin: 0; padding: 0; display: grid; gap: 5px; }
+.svc-row {
+  display: grid; grid-template-columns: 10px max-content 1fr; align-items: baseline;
+  gap: 8px; font-size: 12px;
+}
+.svc-wait { font-size: 12px; color: var(--muted); }
+.svc-dot { width: 9px; height: 9px; border-radius: 50%; align-self: center; background: var(--muted); }
+.svc-row.is-up .svc-dot { background: var(--ok); }
+.svc-row.is-down .svc-dot { background: var(--danger); }
+.svc-row.is-off .svc-dot { background: var(--muted); opacity: .45; }
+.svc-row.is-off .svc-name { color: var(--muted); }
+.svc-detail { color: var(--muted); font-family: var(--mono); font-size: 11px; overflow-wrap: anywhere; }
+.about-foot a:hover { text-decoration: underline; }
+
+/* ------------------------------------------------------------- connect -- */
+/* A dot on the header button when an agent has been calling: small, and only
+   there when it means something. */
+.agent-dot {
+  display: inline-block; width: 7px; height: 7px; margin-left: 6px;
+  border-radius: 50%; background: var(--ok); vertical-align: middle;
+}
+.agent-status {
+  display: flex; align-items: center; gap: 8px; margin: 0 0 4px;
+  padding: 8px 10px; border-radius: 6px; background: var(--panel-2);
+  font-size: 12px; color: var(--muted);
+}
+.agent-status .agent-dot { margin: 0; background: var(--edge); }
+.agent-status.live { color: var(--ink); }
+.agent-status.live .agent-dot { background: var(--ok); }
+.agent-pick { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.agent-pick select { flex: 1 1 auto; min-width: 0; }
+.agent-where {
+  margin: 0; font: 11px/1.6 var(--mono); color: var(--muted);
+  overflow-wrap: anywhere;
+}
+.agent-config {
+  margin: 0; padding: 9px 10px; max-height: 190px; overflow: auto;
+  background: var(--panel-2); border: 1px solid var(--edge); border-radius: 6px;
+  font: 11px/1.5 var(--mono); white-space: pre; color: var(--ink);
+}
+/* the one thing the page genuinely cannot do, said once and quietly */
+.agent-cannot {
+  margin: 0; padding: 8px 10px; font-size: 12px; color: var(--muted);
+  border-left: 3px solid var(--edge); background: var(--panel-2);
+  border-radius: 4px;
+}
+
+/* --------------------------------------------------------------- toast -- */
+.core-toast {
+  position: fixed; bottom: 18px; left: 50%; transform: translateX(-50%);
+  max-width: min(640px, 92vw); padding: 9px 14px; border-radius: 8px;
+  background: var(--ink); color: var(--bg); box-shadow: 0 6px 24px rgb(0 0 0 / .25);
+  z-index: 100; font-size: 13px;
+}
+.core-toast.bad { background: var(--danger); color: #fff; }
+
+/* ------------------------------------------------------------- stopped -- */
+.stopped { padding: 48px; max-width: 70ch; }
+.stopped h1 { font-size: 20px; margin: 0 0 8px; }
+.stopped code { background: var(--panel-2); padding: 1px 5px; border-radius: 4px; }

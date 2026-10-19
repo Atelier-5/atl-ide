@@ -1,0 +1,53 @@
+[build-system]
+requires = ["setuptools>=64"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "atl-ide"
+dynamic = ["version"]
+description = "atl-ide: the Atelier-5 robotics IDE, a Thymio II twin in Webots over ROS 2"
+readme = "README.md"
+requires-python = ">=3.10"
+license = "GPL-3.0-or-later"
+license-files = ["LICENSE"]
+authors = [{ name = "Atelier-5" }]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Environment :: Web Environment",
+    "Programming Language :: Python :: 3",
+]
+
+# engine.py is standard library only. Flask is the web page's, and mcp
+# is the agent server's; every console script below is installed, so
+# these are dependencies rather than optional extras.
+dependencies = ["flask>=3.0", "mcp>=2,<3"]
+
+[project.urls]
+Homepage = "https://github.com/Atelier-5/atl-ide"
+Source = "https://github.com/Atelier-5/atl-ide"
+Issues = "https://github.com/Atelier-5/atl-ide/issues"
+
+[project.scripts]
+atl-ide = "atl.engine:main"
+atl-ide-web = "atl.app:main"
+atl-ide-mcp = "atl.mcp_server:main"
+atl-ide-skill = "atl.core.skill_install:main"
+
+[tool.setuptools]
+packages = ["atl", "atl.core"]
+
+# Flask resolves templates/ and static/ relative to the module that owns them,
+# and core/version.py reads VERSION beside the package, so all of it has to be
+# installed alongside the code. skill/ ships so an install can hand the agent
+# skill over without the repository. tests/test_core.py checks this list.
+[tool.setuptools.package-data]
+atl = ["VERSION", "templates/*.html", "static/*", "skill/*.md", "shared/*.json"]
+"atl.core" = ["static/*", "templates/core/*.html"]
+
+[tool.setuptools.dynamic]
+version = { file = "atl/VERSION" }
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+# Use ./test.sh rather than calling pytest directly: a ROS 2 workstation leaks
+# pytest plugins in through PYTHONPATH that cannot import here.

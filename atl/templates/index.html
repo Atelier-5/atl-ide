@@ -1,0 +1,39 @@
+{% extends "core/_base.html" %}
+
+{#- The tool's page. The header (theme, About, Restart, Stop) and core.js come
+    from core/_base.html; this file fills the blocks. -#}
+
+{% block head %}
+<link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+{% endblock %}
+
+{% block toolbar %}
+  <button id="btn-new">New</button>
+  <button id="btn-save" class="primary">Save</button>
+  <button id="btn-delete" class="danger">Delete</button>
+{% endblock %}
+
+{% block main %}
+<main class="layout">
+
+  <aside class="side">
+    <h3>Notes</h3>
+    <div id="note-list" class="note-list"><p class="note">loading…</p></div>
+  </aside>
+  <section class="editor">
+    <label>Title <input type="text" id="f-title" placeholder="What is this note about?"></label>
+    <label>Name <input type="text" id="f-name" placeholder="file name, e.g. meeting-notes"></label>
+    <label>Body <textarea id="f-body" rows="12"></textarea></label>
+    <label>Tags <input type="text" id="f-tags" placeholder="comma, separated"></label>
+    <div class="actions">
+      <button id="btn-summarise">Summarise</button>
+      <span id="status" class="note"></span>
+    </div>
+    <pre id="summary" class="summary" hidden></pre>
+  </section>
+</main>
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='app.js') }}"></script>
+{% endblock %}

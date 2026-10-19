@@ -1,0 +1,6 @@
+# Windows launchers keep CRLF wherever they are checked out: cmd.exe misreads
+# labels and GOTO targets in a batch file with bare LF line endings.
+*.cmd text eol=crlf
+*.ps1 text eol=crlf
+# and the POSIX ones keep LF, or bash chokes on the carriage returns
+*.sh text eol=lf

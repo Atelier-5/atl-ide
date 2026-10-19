@@ -1,0 +1,33 @@
+/* SPDX-License-Identifier: GPL-3.0-or-later
+   Copyright (C) 2026 D-LAB-5
+
+   The tool's own styles, on top of core/static/core.css. Tokens from core.css
+   (--paper, --panel, --ink, --muted, --edge, --accent, --danger …) are
+   available; add your own below. */
+
+.layout {
+  display: grid; grid-template-columns: minmax(180px, 240px) 1fr; gap: 16px;
+  max-width: 1100px; margin: 0 auto; padding: 18px 16px 60px;
+}
+.layout:not(:has(.side)) { grid-template-columns: 1fr; max-width: 760px; }
+@media (max-width: 640px) { .layout { grid-template-columns: 1fr; } }
+
+.side h3 { margin: 0 0 8px; font-size: 12px; text-transform: uppercase; letter-spacing: .06em; color: var(--muted); }
+.note-list { display: flex; flex-direction: column; gap: 4px; }
+.note-list .row { display: flex; justify-content: space-between; gap: 8px; text-align: left; }
+.note-list .row.is-on { border-color: var(--accent); background: var(--panel-2); }
+.tag { font-size: 11px; color: var(--muted); }
+
+.editor { display: flex; flex-direction: column; gap: 10px; min-width: 0; }
+.editor label { display: flex; flex-direction: column; gap: 4px; font-size: 12px; color: var(--muted); }
+.editor input, .editor textarea { color: var(--ink); font-size: 14px; }
+.editor textarea { resize: vertical; font-family: var(--mono); font-size: 13px; }
+.actions { display: flex; align-items: center; gap: 8px; }
+.summary {
+  margin: 0; padding: 10px; background: var(--panel-2);
+  border: 1px solid var(--edge); border-radius: 6px; font-size: 12px;
+}
+.disclaimer {
+  margin: 0; padding: 8px 10px; font-size: 12px;
+  border-left: 3px solid var(--warn); background: var(--panel-2); border-radius: 4px;
+}

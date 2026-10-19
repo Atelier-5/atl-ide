@@ -1,0 +1,5 @@
+{
+  "title": "Welcome",
+  "body": "This note ships inside the package, in the shared folder.\nSave a copy under a new name and it goes to your own folder instead.\nAn agent sees the same notes through the MCP server.",
+  "tags": ["sample", "shared"]
+}

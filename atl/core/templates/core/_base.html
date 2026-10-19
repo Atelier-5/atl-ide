@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<!-- SPDX-License-Identifier: GPL-3.0-or-later
+     Copyright (C) 2026 D-LAB-5
+
+     The page shell every tool shares. Core-owned: extend it, do not edit it.
+
+       {% raw %}{% extends "core/_base.html" %}{% endraw %}
+       blocks: title, head, body_attrs, brand, toolbar, toolbar_end, main, scripts
+-->
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>{% block title %}{{ tool.TITLE }}{% endblock %}</title>
+<link rel="icon" type="image/svg+xml" href="{{ url_for('static', filename='favicon.svg') }}">
+<link rel="stylesheet" href="{{ url_for('core.static', filename='core.css') }}">
+{% block head %}{% endblock %}
+</head>
+<body data-tool="{{ tool.TOOL_NAME }}" data-title="{{ tool.TITLE }}"
+      data-web-command="{{ tool.WEB_COMMAND }}" data-version="{{ version }}"
+      {% block body_attrs %}{% endblock %}>
+
+<header class="bar">
+  {% block brand %}<span class="brand">{{ tool.TITLE }}</span>{% endblock %}
+  {% block toolbar %}{% endblock %}
+  <span class="spacer"></span>
+  {% block toolbar_end %}{% endblock %}
+  <label class="toggle" title="themes this page only">
+    theme <select id="core-theme">
+      <option value="auto">auto</option>
+      <option value="light">light</option>
+      <option value="dark">dark</option>
+    </select>
+  </label>
+  <button id="core-about" title="version, licence and the repository">About</button>
+{%- if with_mcp %}
+  <button id="core-connect" title="point an agent at this tool">
+    Agent<span id="core-agent-dot" class="agent-dot" hidden title="an agent is working here"></span>
+  </button>
+{%- endif %}
+  <button id="core-restart" class="warn-btn" title="start the server again on the same port">Restart</button>
+  <button id="core-stop" class="stop" title="shut the local server down">Stop</button>
+</header>
+
+{% block main %}{% endblock %}
+
+<script src="{{ url_for('core.static', filename='core.js') }}"></script>
+{% block scripts %}{% endblock %}
+</body>
+</html>

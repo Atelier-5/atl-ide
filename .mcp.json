@@ -1,0 +1,9 @@
+{
+  "mcpServers": {
+    "atl-ide": {
+      "command": ".venv/bin/python",
+      "args": ["-m", "atl.mcp_server"],
+      "env": {}
+    }
+  }
+}

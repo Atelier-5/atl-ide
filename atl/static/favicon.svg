@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" role="img" aria-label="tool">
+  <title>tool</title>
+  <!-- Placeholder mark: replace it with the tool's own. Colours that read on a
+       light and a dark tab bar, no background plate. -->
+  <rect x="5" y="5" width="22" height="22" rx="6" fill="none" stroke="#0098d4" stroke-width="4"/>
+  <circle cx="16" cy="16" r="4.5" fill="#ee7c0e"/>
+</svg>

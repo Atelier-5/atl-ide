@@ -1,0 +1,26 @@
+# Changes here will be overwritten by Copier; NEVER EDIT MANUALLY
+_commit: v0.4.1
+_src_path: gh:ERP-LAB-5/python-tool-template
+author: Atelier-5
+cli_command: atl-ide
+cli_module: engine
+coffee_url: ''
+copyright_year: 2026
+default_branch: main
+description: 'atl-ide: the Atelier-5 robotics IDE, a Thymio II twin in Webots over
+    ROS 2'
+disclaimer: ''
+github_org: Atelier-5
+package_name: atl
+port: 8780
+repo_name: atl-ide
+shared_dir: shared
+title: atl-ide
+tool_name: atl-ide
+web_command: atl-ide-web
+with_mcp: true
+with_plugin: true
+with_release: true
+with_windows: false
+with_workspace: true
+workspace_dir: mydocs
