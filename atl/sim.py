@@ -54,6 +54,15 @@ def webots_command(binary: str, table: Path, gui: bool = True) -> List[str]:
     return cmd + [str(table)]
 
 
+def webots_env(env: Optional[Dict[str, str]] = None) -> Dict[str, str]:
+    """This environment without what belongs to another program: started from a snap (PyCharm's terminal),
+    its SNAP_* variables make the Webots snap's launcher stall without a word; a sourced ROS adds its libraries."""
+    env = dict(os.environ if env is None else env)
+    return {k: v for k, v in env.items()
+            if not k.startswith("SNAP") and k not in ("LD_LIBRARY_PATH", "PYTHONPATH", "AMENT_PREFIX_PATH",
+                                                       "GIO_LAUNCHED_DESKTOP_FILE", "GIO_LAUNCHED_DESKTOP_FILE_PID")}
+
+
 def body_command(twin: Path) -> List[str]:
     """The container: host network (Webots and the gateway on 127.0.0.1), the twin folder at the same path
     inside and out, and this user's uid, so nothing it writes belongs to root."""
@@ -182,7 +191,7 @@ class Simulation:
         self._step("webots", "now")
         self._remove_container()                 # one left over from a crash would hold the name
         log = open(twin / "webots.log", "w")
-        self.webots = subprocess.Popen(webots_command(webots_binary(), twin / "table.wbt", self.gui), cwd=twin,
+        self.webots = subprocess.Popen(webots_command(webots_binary(), twin / "table.wbt", self.gui), cwd=twin, env=webots_env(),
                                        stdout=log, stderr=subprocess.STDOUT, start_new_session=True)
         waiting = "Waiting for local or remote connection"
         end = time.time() + WAIT_WEBOTS

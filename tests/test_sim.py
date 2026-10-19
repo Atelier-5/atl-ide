@@ -18,6 +18,12 @@ def test_webots_opens_the_table_on_its_own_port_with_or_without_a_window():
     assert "--no-rendering" in headless and "--minimize" in headless
 
 
+def test_webots_does_not_inherit_another_snaps_environment():
+    env = sim.webots_env({"SNAP": "/snap/pycharm-community/662", "SNAP_NAME": "pycharm-community",
+                          "LD_LIBRARY_PATH": "/opt/ros/foxy/lib", "DISPLAY": ":0", "HOME": "/home/me"})
+    assert env == {"DISPLAY": ":0", "HOME": "/home/me"}
+
+
 def test_the_body_runs_as_this_user_on_the_host_network_with_the_twin_at_the_same_path():
     cmd = sim.body_command(Path("/home/me/twin"))
     assert cmd[:4] == ["docker", "run", "-d", "--rm"] and "--net=host" in cmd
