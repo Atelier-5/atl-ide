@@ -65,7 +65,7 @@ def test_only_the_robots_own_actions_pass_through(client):
     assert client.post("/api/robot/shutdown", json={}, headers=h).status_code == 404
     assert client.post("/api/robot/drive", json={"linear": 0.1}, headers=h).status_code == 503
     assert set(__import__("atl.app", fromlist=["ROBOT_ACTIONS"]).ROBOT_ACTIONS) == {
-        "drive", "behaviour", "button", "clap", "lift", "led", "estop", "reset", "place"}
+        "drive", "behaviour", "button", "clap", "lift", "led", "estop", "reset", "place", "view"}
 
 
 def test_the_simulation_status_route(client):

@@ -310,3 +310,6 @@ button.danger.strip__estop { margin-right: 0; font-weight: 700; }
 body:not(.names-off) .plots .sensor-name { display: inline; } body:not(.names-off) .plots .plain { display: none; }
 #sensor-values { font-family: var(--app-font-mono); font-size: 0.8rem; }
 .pad button:disabled, .behaviour:disabled { cursor: not-allowed; }
+
+/* the camera's views: under the picture, as wide as it */
+.view-seg { grid-template-columns: repeat(3, 1fr); margin: var(--app-space-2) 0 0; }

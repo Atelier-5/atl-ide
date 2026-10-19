@@ -96,7 +96,7 @@ def favicon():
 # The page never talks to the gateway itself: these routes pass a fixed set of
 # calls through, so the gateway stays reachable from this server only.
 
-ROBOT_ACTIONS = ("drive", "behaviour", "button", "clap", "lift", "led", "estop", "reset", "place")
+ROBOT_ACTIONS = ("drive", "behaviour", "button", "clap", "lift", "led", "estop", "reset", "place", "view")
 
 
 def twin_dir():

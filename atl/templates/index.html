@@ -102,6 +102,11 @@
           <section class="panel" aria-labelledby="h-robot">
             <h2 id="h-robot">Robot</h2>
             <div class="overview" id="overview"><p class="empty">The camera above the table shows here once the simulation runs.</p></div>
+            <div class="app-seg view-seg" role="group" aria-label="Camera view" id="view-seg">
+              <button type="button" class="app-seg__option app-seg__option--on" data-view="top" aria-pressed="true">from above</button>
+              <button type="button" class="app-seg__option" data-view="table" aria-pressed="false">at the table</button>
+              <button type="button" class="app-seg__option" data-view="follow" aria-pressed="false">behind the robot</button>
+            </div>
           </section>
 
           <section class="panel" aria-labelledby="h-sensors">
@@ -124,6 +129,7 @@
             <div class="actions">
               <button type="button" id="btn-pause" aria-pressed="false">Pause the plots</button>
               <label class="toggle"><input type="checkbox" id="chk-names"> show the names</label>
+              <label class="toggle"><input type="checkbox" id="chk-sound" checked> sound</label>
             </div>
           </section>
         </div>

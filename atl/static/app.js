@@ -188,7 +188,7 @@ function drawSim(s) {
   document.querySelectorAll("#pad button").forEach((b) => { b.disabled = !running || S.behaviour !== "none"; });
   if (running && !S.camera) {
     S.camera = true;
-    $("#overview").innerHTML = `<img src="/api/robot/camera.mjpg" alt="${core.esc(tr("The table seen from above, live"))}">`;
+    $("#overview").innerHTML = `<img src="/api/robot/camera.mjpg" alt="${core.esc(tr("The table seen by its camera, live"))}">`;
   } else if (!running && S.camera) {
     S.camera = false;
     $("#overview").innerHTML = `<p class="empty">${core.esc(tr("The camera above the table shows here once the simulation runs."))}</p>`;
@@ -266,6 +266,8 @@ function drawRobot(r) {
   S.lifted = !!r.lifted;
   $("#btn-lift").textContent = tr(S.lifted ? "Put it down" : "Lift the robot");
   $("#btn-lift").setAttribute("aria-pressed", String(S.lifted));
+  markView(r.view || "top");
+  sounds(r, doing);
 }
 async function pollRobot() {
   if (S.phase !== "running" || S.tab !== "table") return;
@@ -284,6 +286,89 @@ $("#btn-estop").addEventListener("click", () => {
   if (S.phase !== "running") return core.toast(tr("The simulation is not running: start it on the Table screen."));
   robot("estop", { on: !S.estop });
 });
+
+/* the camera's views: the supervisor moves its camera (views.py in atl-bot-thymio) */
+function markView(view) {
+  document.querySelectorAll("#view-seg [data-view]").forEach((b) => {
+    const on = b.dataset.view === view;
+    b.classList.toggle("app-seg__option--on", on);
+    b.setAttribute("aria-pressed", String(on));
+  });
+}
+document.querySelectorAll("#view-seg [data-view]").forEach((b) => b.addEventListener("click", () => {
+  if (S.phase !== "running") return;
+  markView(b.dataset.view);
+  robot("view", { view: b.dataset.view });
+}));
+
+/* sound: the Webots Thymio is silent, so the page plays what the real one would (Web Audio, after the first click) */
+const SOUND = { ctx: null, on: true, behaviour: "none", doing: "", alarmAt: 0 };
+function audio() {
+  if (!SOUND.ctx) {
+    try { SOUND.ctx = new (window.AudioContext || window.webkitAudioContext)(); } catch (_) { return null; }
+  }
+  if (SOUND.ctx.state === "suspended") SOUND.ctx.resume();
+  return SOUND.ctx;
+}
+// notes: [frequency Hz (0: a clap's noise), seconds], one after the other
+function play(notes, wave = "triangle") {
+  const ctx = SOUND.on && audio();
+  if (!ctx) return;
+  let t = ctx.currentTime + 0.01;
+  for (const [f, d] of notes) {
+    const gain = ctx.createGain();
+    gain.gain.setValueAtTime(0.0001, t);
+    gain.gain.exponentialRampToValueAtTime(0.18, t + 0.01);
+    gain.gain.exponentialRampToValueAtTime(0.0001, t + d);
+    gain.connect(ctx.destination);
+    let src;
+    if (f) {
+      src = ctx.createOscillator();
+      src.type = wave;
+      src.frequency.setValueAtTime(f, t);
+    } else {
+      const buf = ctx.createBuffer(1, Math.ceil(ctx.sampleRate * d), ctx.sampleRate), data = buf.getChannelData(0);
+      for (let i = 0; i < data.length; i++) data[i] = (Math.random() * 2 - 1) * (1 - i / data.length);
+      src = ctx.createBufferSource();
+      src.buffer = buf;
+    }
+    src.connect(gain);
+    src.start(t);
+    src.stop(t + d + 0.02);
+    t += d + 0.03;
+  }
+}
+const TUNES = {
+  start: [[523, 0.09], [659, 0.09], [784, 0.14]],      // a behaviour starts
+  stop: [[784, 0.09], [523, 0.16]],                    // back to none
+  button: [[880, 0.06]],
+  edge: [[1175, 0.07], [1175, 0.07]],                  // the table ends here
+  alarm: [[988, 0.12], [740, 0.12], [988, 0.12], [740, 0.12]],
+};
+function sounds(r, doing) {
+  if (S.behaviour !== SOUND.behaviour) play(TUNES[S.behaviour === "none" ? "stop" : "start"]);
+  if (doing.startsWith("edge") && !SOUND.doing.startsWith("edge")) play(TUNES.edge, "square");
+  if ((doing === "trapped: alarm" || doing === "lifted") && Date.now() - SOUND.alarmAt > 1500) {
+    SOUND.alarmAt = Date.now();
+    play(TUNES.alarm, "square");
+  }
+  SOUND.behaviour = S.behaviour;
+  SOUND.doing = doing;
+}
+document.querySelectorAll("#touch [data-button]").forEach((b) => b.addEventListener("click", () => play(TUNES.button)));
+document.querySelectorAll("[data-clap]").forEach((b) =>
+  b.addEventListener("click", () => play(Array.from({ length: Number(b.dataset.clap) }, () => [0, 0.08]))));
+function soundOn(on) {
+  SOUND.on = on;
+  $("#chk-sound").checked = on;
+  try { localStorage.setItem("atl-ide-sound", on ? "on" : "off"); } catch (_) { /* private window */ }
+}
+$("#chk-sound").addEventListener("change", (e) => { soundOn(e.target.checked); if (e.target.checked) play(TUNES.button); });
+{
+  let saved = null;
+  try { saved = localStorage.getItem("atl-ide-sound"); } catch (_) { /* private window */ }
+  soundOn(saved !== "off");
+}
 
 /* driving by hand: the command again every 200 ms while held, a stop on release (the driver's watchdog: 0.5 s) */
 const DRIVE = { fwd: [0.1, 0], back: [-0.1, 0], left: [0, 1.6], right: [0, -1.6], stop: [0, 0] };
