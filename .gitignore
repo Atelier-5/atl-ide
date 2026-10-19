@@ -242,3 +242,6 @@ temp/
 
 # screenshots while developing
 shots/
+
+# Archify working folders (candidates, receipts)
+.archify/

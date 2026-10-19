@@ -52,3 +52,14 @@ installer and package (15-minute links, SHA-256 checked). Raise the cloud's
 The edge decides what leaves it. Keep biometrics, raw sensor data and
 anything the workshop marks private out of the A-Boxes and out of
 tool answers; the chat sees only what the tools answer.
+
+## The drawings: How it works, Data model
+
+Both are Archify drawings (`~/.claude/skills/archify`), served at `/how` and `/model` and linked from the rail.
+Edit the source in `docs/`, then render it into `atl/static/`:
+
+```bash
+A=~/.claude/skills/archify/bin/archify.mjs
+node $A finalize architecture docs/how-it-works.architecture.json atl/static/how.html --quality showcase --json
+node $A finalize class docs/data-model.class.json atl/static/model.html --quality showcase --json
+```

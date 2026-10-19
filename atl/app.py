@@ -65,6 +65,18 @@ def i18n_catalog():
     return jsonify(_i18n_boot())
 
 
+@app.get("/how")
+def how():
+    """How atl-ide works: an Archify drawing (docs/how-it-works.architecture.json)."""
+    return app.send_static_file("how.html")
+
+
+@app.get("/model")
+def model():
+    """The data model, the robot ontology and its topic contract: an Archify drawing (docs/data-model.class.json)."""
+    return app.send_static_file("model.html")
+
+
 @app.get("/favicon.ico")
 def favicon():
     """Browsers ask for this by name whatever the page links to."""

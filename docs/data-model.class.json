@@ -1,0 +1,397 @@
+{
+  "schema_version": 1,
+  "diagram_type": "class",
+  "meta": {
+    "title": "atl-ide data model: the robot ontology",
+    "locale": "en",
+    "quality_profile": "showcase",
+    "output": "atl/static/model.html"
+  },
+  "layout": {
+    "mode": "grid"
+  },
+  "types": [
+    {
+      "id": "command",
+      "label": "atl:Command",
+      "kind": "abstract",
+      "sublabel": "what the robot accepts",
+      "row": 0,
+      "col": 0,
+      "attributes": [
+        {
+          "name": "kind",
+          "type": "one of 9:",
+          "visibility": "public"
+        },
+        {
+          "name": "drive · behaviour · button",
+          "visibility": "public"
+        },
+        {
+          "name": "clap · lift · led",
+          "visibility": "public"
+        },
+        {
+          "name": "estop · reset · place",
+          "visibility": "public"
+        },
+        {
+          "name": "gatewayRoute",
+          "type": "/drive …",
+          "visibility": "public"
+        },
+        {
+          "name": "needsConfirmation",
+          "type": "true; estop: false",
+          "visibility": "public"
+        },
+        {
+          "name": "parameters",
+          "type": "SHACL shape",
+          "visibility": "public"
+        }
+      ]
+    },
+    {
+      "id": "thymio",
+      "label": "atl:Thymio2",
+      "kind": "class",
+      "sublabel": "a sosa:Platform: thymio_1",
+      "row": 0,
+      "col": 1.5,
+      "attributes": [
+        {
+          "name": "contract",
+          "type": "atl-thymio/0.1",
+          "visibility": "public"
+        },
+        {
+          "name": "wheelRadius",
+          "type": "0.021 m",
+          "visibility": "public"
+        },
+        {
+          "name": "wheelTrack",
+          "type": "0.10 m",
+          "visibility": "public"
+        },
+        {
+          "name": "maxWheelSpeed",
+          "type": "9.53 rad/s",
+          "visibility": "public"
+        }
+      ]
+    },
+    {
+      "id": "topic",
+      "label": "atl:Topic",
+      "kind": "record",
+      "sublabel": "the ROS 2 contract",
+      "row": 0,
+      "col": 3,
+      "attributes": [
+        {
+          "name": "path",
+          "type": "/thymio_1/…",
+          "visibility": "public"
+        },
+        {
+          "name": "messageType",
+          "type": "ROS 2 message",
+          "visibility": "public"
+        },
+        {
+          "name": "direction",
+          "type": "in | out",
+          "visibility": "public"
+        },
+        {
+          "name": "rate",
+          "type": "≈ 30 Hz",
+          "visibility": "public"
+        }
+      ]
+    },
+    {
+      "id": "behaviour",
+      "label": "atl:Behaviour",
+      "kind": "enum",
+      "sublabel": "built in, with its LED colour",
+      "row": 1,
+      "col": 0,
+      "attributes": [
+        {
+          "name": "friendly",
+          "type": "green",
+          "visibility": "public"
+        },
+        {
+          "name": "explorer",
+          "type": "yellow",
+          "visibility": "public"
+        },
+        {
+          "name": "fearful",
+          "type": "red",
+          "visibility": "public"
+        },
+        {
+          "name": "inspector",
+          "type": "light blue",
+          "visibility": "public"
+        },
+        {
+          "name": "attentive",
+          "type": "dark blue",
+          "visibility": "public"
+        },
+        {
+          "name": "obedient",
+          "type": "pink",
+          "visibility": "public"
+        },
+        {
+          "name": "none",
+          "visibility": "public"
+        }
+      ]
+    },
+    {
+      "id": "sensor",
+      "label": "sosa:Sensor",
+      "kind": "abstract",
+      "sublabel": "what the robot perceives",
+      "row": 1,
+      "col": 1.5,
+      "attributes": [
+        {
+          "name": "topic",
+          "type": "atl:Topic",
+          "visibility": "public"
+        },
+        {
+          "name": "index",
+          "type": "integer",
+          "visibility": "public"
+        },
+        {
+          "name": "pose",
+          "type": "m, on the robot",
+          "visibility": "public"
+        },
+        {
+          "name": "range",
+          "type": "raw, measured",
+          "visibility": "public"
+        }
+      ]
+    },
+    {
+      "id": "actuator",
+      "label": "sosa:Actuator",
+      "kind": "abstract",
+      "sublabel": "what the robot does",
+      "row": 1,
+      "col": 3,
+      "attributes": [
+        {
+          "name": "motor.left, motor.right",
+          "type": "cmd_vel",
+          "visibility": "public"
+        },
+        {
+          "name": "leds.top",
+          "type": "leds/top",
+          "visibility": "public"
+        }
+      ]
+    },
+    {
+      "id": "prox",
+      "label": "atl:ProximitySensor",
+      "kind": "class",
+      "sublabel": "7, infra-red",
+      "row": 2,
+      "col": 0,
+      "attributes": [
+        {
+          "name": "raw",
+          "type": "0 – 4300",
+          "visibility": "public"
+        },
+        {
+          "name": "reach, carton",
+          "type": "5.25 cm",
+          "visibility": "public"
+        },
+        {
+          "name": "reach, wood",
+          "type": "4.5 cm",
+          "visibility": "public"
+        }
+      ]
+    },
+    {
+      "id": "ground",
+      "label": "atl:GroundSensor",
+      "kind": "class",
+      "sublabel": "2, 7.36 cm ahead",
+      "row": 2,
+      "col": 1,
+      "attributes": [
+        {
+          "name": "white table",
+          "type": "≈ 765",
+          "visibility": "public"
+        },
+        {
+          "name": "black line",
+          "type": "≈ 288",
+          "visibility": "public"
+        },
+        {
+          "name": "lifted",
+          "type": "0",
+          "visibility": "public"
+        }
+      ]
+    },
+    {
+      "id": "acc",
+      "label": "atl:Accelerometer",
+      "kind": "class",
+      "sublabel": "3 axes",
+      "row": 2,
+      "col": 2,
+      "attributes": [
+        {
+          "name": "raw",
+          "type": "≈ 23 per g",
+          "visibility": "public"
+        },
+        {
+          "name": "imu",
+          "type": "m/s², robot frame",
+          "visibility": "public"
+        }
+      ]
+    },
+    {
+      "id": "encoder",
+      "label": "atl:WheelEncoder",
+      "kind": "class",
+      "sublabel": "2, one per wheel",
+      "row": 2,
+      "col": 3,
+      "attributes": [
+        {
+          "name": "wheels",
+          "type": "rad/s",
+          "visibility": "public"
+        },
+        {
+          "name": "odom",
+          "type": "x, y, θ",
+          "visibility": "public"
+        }
+      ]
+    }
+  ],
+  "relationships": [
+    {
+      "id": "accepts",
+      "from": "thymio",
+      "to": "command",
+      "kind": "association",
+      "label": "accepts"
+    },
+    {
+      "id": "hosts-sensors",
+      "from": "thymio",
+      "to": "sensor",
+      "kind": "composition",
+      "label": "sosa:hosts"
+    },
+    {
+      "id": "hosts-actuators",
+      "from": "thymio",
+      "to": "actuator",
+      "kind": "composition",
+      "label": "sosa:hosts"
+    },
+    {
+      "id": "selects",
+      "from": "command",
+      "to": "behaviour",
+      "kind": "dependency",
+      "label": "behaviour selects"
+    },
+    {
+      "id": "reads",
+      "from": "behaviour",
+      "to": "sensor",
+      "kind": "dependency",
+      "label": "reads"
+    },
+    {
+      "id": "listens",
+      "from": "actuator",
+      "to": "topic",
+      "kind": "association",
+      "label": "listens on"
+    },
+    {
+      "id": "p-is",
+      "from": "prox",
+      "to": "sensor",
+      "kind": "inheritance"
+    },
+    {
+      "id": "g-is",
+      "from": "ground",
+      "to": "sensor",
+      "kind": "inheritance"
+    },
+    {
+      "id": "a-is",
+      "from": "acc",
+      "to": "sensor",
+      "kind": "inheritance"
+    },
+    {
+      "id": "e-is",
+      "from": "encoder",
+      "to": "sensor",
+      "kind": "inheritance"
+    }
+  ],
+  "cards": [
+    {
+      "dot": "emerald",
+      "title": "A thin layer over standards",
+      "items": [
+        "SOSA/SSN for platforms, sensors and actuators; schema.org for names; SKOS for the behaviours",
+        "Labels in English, French and German",
+        "The measured values come from the twin (docs/sensor-ranges.md)"
+      ]
+    },
+    {
+      "dot": "violet",
+      "title": "How an agent uses it",
+      "items": [
+        "robot() and sensors() read the A-Box and the live values",
+        "command(name, …) is checked against the ontology and its SHACL shape, then proposed",
+        "A facilitator confirms it; the E-stop is never a proposal"
+      ]
+    },
+    {
+      "dot": "amber",
+      "title": "Status",
+      "items": [
+        "Drawn from the plan and the contract atl-thymio/0.1",
+        "Regenerated from atl/edge/ontology/ once the ontology files exist (step 7)"
+      ]
+    }
+  ]
+}

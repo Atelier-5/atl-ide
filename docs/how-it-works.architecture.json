@@ -1,0 +1,377 @@
+{
+  "schema_version": 1,
+  "diagram_type": "architecture",
+  "meta": {
+    "title": "How atl-ide works",
+    "locale": "en",
+    "quality_profile": "showcase",
+    "output": "atl/static/how.html",
+    "views": [
+      {
+        "id": "sense",
+        "label": "See the sensors",
+        "focus": [
+          "person",
+          "page",
+          "app",
+          "gateway",
+          "drivers",
+          "webots"
+        ],
+        "note": "Webots runs the table. The driver publishes what the Thymio senses; the gateway hands it to the page about 30 times a second."
+      },
+      {
+        "id": "drive",
+        "label": "Drive it by hand",
+        "focus": [
+          "person",
+          "page",
+          "app",
+          "gateway",
+          "drivers"
+        ],
+        "note": "The arrow pad becomes cmd_vel. A watchdog stops the wheels within 0.5 s; the E-stop holds them whatever else is sent."
+      },
+      {
+        "id": "behave",
+        "label": "A built-in behaviour",
+        "focus": [
+          "page",
+          "gateway",
+          "behaviours",
+          "drivers"
+        ],
+        "note": "Friendly, Explorer and the others read the sensors and write cmd_vel and the LED, exactly as a young person's program will."
+      },
+      {
+        "id": "prepare",
+        "label": "Prepare the table",
+        "focus": [
+          "app",
+          "world",
+          "webots"
+        ],
+        "note": "world.py writes table.wbt and is never edited by hand: every later starting world is a variation of it."
+      },
+      {
+        "id": "agent",
+        "label": "An agent helps",
+        "focus": [
+          "agent",
+          "mcp",
+          "ontology",
+          "page"
+        ],
+        "note": "The agent reads freely. It checks a command against the ontology, then proposes it; a facilitator confirms it on the page."
+      }
+    ]
+  },
+  "components": [
+    {
+      "id": "person",
+      "type": "external",
+      "label": "Group",
+      "sublabel": "learners · facilitator",
+      "pos": [
+        40,
+        40
+      ],
+      "size": [
+        140,
+        64
+      ]
+    },
+    {
+      "id": "page",
+      "type": "frontend",
+      "label": "atl-ide page",
+      "sublabel": "Table · rail · EN/FR/DE",
+      "pos": [
+        290,
+        40
+      ],
+      "size": [
+        140,
+        64
+      ],
+      "tag": "you confirm"
+    },
+    {
+      "id": "app",
+      "type": "backend",
+      "label": "atl-ide app",
+      "sublabel": "Flask :8780 · no ROS",
+      "pos": [
+        540,
+        40
+      ],
+      "size": [
+        140,
+        64
+      ]
+    },
+    {
+      "id": "gateway",
+      "type": "security",
+      "label": "Gateway",
+      "sublabel": "127.0.0.1:8781 only",
+      "pos": [
+        790,
+        40
+      ],
+      "size": [
+        140,
+        64
+      ]
+    },
+    {
+      "id": "drivers",
+      "type": "backend",
+      "label": "Webots drivers",
+      "sublabel": "thymio_1 · atl_sup",
+      "pos": [
+        1040,
+        40
+      ],
+      "size": [
+        140,
+        64
+      ],
+      "tag": "watchdog · E-stop"
+    },
+    {
+      "id": "agent",
+      "type": "external",
+      "label": "Agent",
+      "sublabel": "Claude Code · MCP",
+      "pos": [
+        40,
+        240
+      ],
+      "size": [
+        140,
+        64
+      ]
+    },
+    {
+      "id": "mcp",
+      "type": "backend",
+      "label": "MCP server",
+      "sublabel": "reads · proposes",
+      "pos": [
+        290,
+        240
+      ],
+      "size": [
+        140,
+        64
+      ]
+    },
+    {
+      "id": "behaviours",
+      "type": "backend",
+      "label": "Behaviours node",
+      "sublabel": "6 built-in · LED colours",
+      "pos": [
+        790,
+        240
+      ],
+      "size": [
+        140,
+        64
+      ]
+    },
+    {
+      "id": "ontology",
+      "type": "database",
+      "label": "Ontology",
+      "sublabel": "T-Box · SHACL · A-Box",
+      "pos": [
+        290,
+        440
+      ],
+      "size": [
+        140,
+        64
+      ]
+    },
+    {
+      "id": "world",
+      "type": "backend",
+      "label": "World generator",
+      "sublabel": "world.py · table.wbt",
+      "pos": [
+        540,
+        440
+      ],
+      "size": [
+        140,
+        64
+      ]
+    },
+    {
+      "id": "webots",
+      "type": "cloud",
+      "label": "Webots R2025a",
+      "sublabel": "the virtual table",
+      "pos": [
+        1040,
+        440
+      ],
+      "size": [
+        140,
+        64
+      ]
+    }
+  ],
+  "boundaries": [
+    {
+      "kind": "region",
+      "label": "This PC · atl-ide (Python, no ROS)",
+      "wraps": [
+        "page",
+        "app",
+        "mcp",
+        "ontology",
+        "world"
+      ]
+    },
+    {
+      "kind": "region",
+      "label": "Docker · atl-bot-thymio (ROS 2 Kilted)",
+      "wraps": [
+        "gateway",
+        "drivers",
+        "behaviours"
+      ]
+    },
+    {
+      "kind": "region",
+      "label": "This PC · Webots",
+      "wraps": [
+        "webots"
+      ]
+    }
+  ],
+  "connections": [
+    {
+      "id": "acts",
+      "from": "person",
+      "to": "page",
+      "label": "taps · drives",
+      "variant": "emphasis"
+    },
+    {
+      "id": "api",
+      "from": "page",
+      "to": "app",
+      "label": "HTTP /api",
+      "variant": "emphasis"
+    },
+    {
+      "id": "http",
+      "from": "app",
+      "to": "gateway",
+      "label": "HTTP :8781",
+      "variant": "emphasis"
+    },
+    {
+      "id": "topics",
+      "from": "gateway",
+      "to": "drivers",
+      "label": "ROS 2 topics",
+      "variant": "emphasis"
+    },
+    {
+      "id": "extern",
+      "from": "drivers",
+      "to": "webots",
+      "label": "extern · TCP :1240",
+      "fromSide": "bottom",
+      "toSide": "top"
+    },
+    {
+      "id": "choose",
+      "from": "gateway",
+      "to": "behaviours",
+      "label": "behaviour · clap",
+      "fromSide": "bottom",
+      "toSide": "top"
+    },
+    {
+      "id": "wheels",
+      "from": "behaviours",
+      "to": "drivers",
+      "label": "cmd_vel · LED"
+    },
+    {
+      "id": "mcp-stdio",
+      "from": "agent",
+      "to": "mcp",
+      "label": "MCP · stdio",
+      "variant": "dashed"
+    },
+    {
+      "id": "propose",
+      "from": "mcp",
+      "to": "page",
+      "label": "proposals",
+      "variant": "dashed",
+      "fromSide": "top",
+      "toSide": "bottom"
+    },
+    {
+      "id": "check",
+      "from": "mcp",
+      "to": "ontology",
+      "label": "checks",
+      "variant": "security",
+      "fromSide": "bottom",
+      "toSide": "top"
+    },
+    {
+      "id": "prepare",
+      "from": "app",
+      "to": "world",
+      "label": "prepare",
+      "fromSide": "bottom",
+      "toSide": "top"
+    },
+    {
+      "id": "wbt",
+      "from": "world",
+      "to": "webots",
+      "label": "table.wbt",
+      "variant": "emphasis"
+    }
+  ],
+  "cards": [
+    {
+      "dot": "emerald",
+      "title": "The contract: atl-thymio/0.1",
+      "items": [
+        "Topics under /thymio_1/: prox/horizontal (7), prox/ground (2), imu, acc, wheels, odom; cmd_vel, leds/top, estop",
+        "The gateway names it in every answer (X-ATL-Contract) and serves the robot's A-Box at /robot.ttl",
+        "The physical Thymio will offer the same topics later"
+      ]
+    },
+    {
+      "dot": "rose",
+      "title": "Safety",
+      "items": [
+        "The gateway answers this PC only: a foreign Origin or Host is refused",
+        "No driving by hand while a behaviour runs; reset stops the robot first",
+        "The E-stop and a 0.5 s watchdog live in the driver, the lowest level"
+      ]
+    },
+    {
+      "dot": "violet",
+      "title": "Later",
+      "items": [
+        "Blockly to program the robot and the scene",
+        "The real Thymio behind a Raspberry Pi backpack, the same contract",
+        "The Atelier-5 cloud link (the edge layer is in place, unlinked)"
+      ]
+    }
+  ]
+}
