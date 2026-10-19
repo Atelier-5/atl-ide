@@ -4,10 +4,10 @@
 """
 mcp_server.py — MCP access to atl-ide.
 
-Exposes the tool over stdio, so an agent can work on the same data a person has
-open in the browser. The pure engine calls run in-process; everything that
-touches files goes through the web server (core.mcp_bridge), which is started
-on demand, so browser and agent never disagree about what is on disk.
+Exposes the robot over stdio, so an agent sees the same virtual table a person has
+open in the browser. Everything goes through the web server (core.mcp_bridge),
+started on demand. Reading is free; acting is a proposal (edge.mcp_tools.act),
+which a facilitator confirms in the chat panel; the emergency stop never waits.
 
     atl-ide-mcp                               # talks to 127.0.0.1:8780
     atl-ide-mcp --port 9000
@@ -23,85 +23,112 @@ Nothing may be written to stdout: that is the MCP transport. Log to stderr.
 from __future__ import annotations
 
 import argparse
-import urllib.parse
-from typing import Optional
+from typing import Any, Optional
 
 from mcp.server.mcpserver import MCPServer
 
-from . import engine as engine
 from .core import mcp_bridge as web
 
 server = MCPServer(
     name="atl-ide",
     instructions=(
-        "atl-ide: the Atelier-5 robotics IDE, a Thymio II twin in Webots over ROS 2" + ". "
-        "A note is a JSON object with a title, a body and optional tags. "
-        "Call validate_note before saving anything you assembled by hand."
-        " Notes live in two folders: 'user' (the person's own, where new saves "
-        "go) and 'shared' (samples that ship with the tool). Pass the version "
-        "read_note returned as base_version when you save, so a change the "
-        "person made in the browser meanwhile is never overwritten silently."
+        "atl-ide: the Atelier-5 robotics IDE. A Thymio II on a virtual table in Webots, explored by young people "
+        "(12 and up) with a facilitator. Be a correspondant: ask what they observed and expect before you suggest. "
+        "simulation() says whether the table runs; robot() what the robot is (from its ontology: sensors, where they "
+        "sit, what was measured); sensors() its live readings, each named; commands() what it accepts. Always "
+        "check_command() before command(): the ontology's shapes refuse what the robot cannot do. command() and "
+        "start_simulation() are proposals a facilitator confirms in the chat panel; never say the robot did something "
+        "before sensors() shows it. estop() is never a proposal: use it at once if the robot must stop."
     ),
 )
 
 web.add_core_tools(server)
 
-from .edge.mcp_tools import add_edge_tools  # edge layer
+from .edge.mcp_tools import act, add_edge_tools  # edge layer
 add_edge_tools(server)
 
 
-@server.tool()
-def validate_note(note: dict) -> list[str]:
-    """Everything wrong with a note. An empty list means it is valid."""
-    return engine.validate(note)
+def _get(path: str) -> Any:
+    web.ensure_server()
+    return web.call("GET", path)
 
 
 @server.tool()
-def summarise_note(note: dict) -> dict:
-    """Word and line counts and the distinct tags of a valid note."""
-    errors = engine.validate(note)
+def simulation() -> dict:
+    """The virtual table: phase (stopped, starting, running, failed), the start's steps, what is missing to start it,
+    and the last lines of the log when it failed."""
+    return _get("/api/sim")
+
+
+@server.tool()
+def start_simulation() -> Any:
+    """Start the virtual table: Webots opens it with one Thymio II and the robot's body connects (about 10 s).
+    A proposal: the facilitator confirms it. Then poll simulation() until it is running."""
+    return act("Start the simulation", "POST", "/api/sim/start", {"gui": True})
+
+
+@server.tool()
+def stop_simulation() -> Any:
+    """Stop the virtual table (Webots and the robot's body). A proposal: the facilitator confirms it."""
+    return act("Stop the simulation", "POST", "/api/sim/stop", {})
+
+
+@server.tool()
+def robot() -> dict:
+    """What the robot is, from its ontology (A-Box): its name and contract, its motors' limits, every sensor and
+    actuator it hosts (kind, device, position on the robot in m, raw range, topic) with what was measured, and the
+    commands it accepts. Available once the simulation has run once."""
+    return _get("/api/ontology/robot")
+
+
+@server.tool()
+def sensors() -> dict:
+    """The live readings, each with the sensor it comes from (kind, side, raw range), plus the IMU (m/s2), odometry,
+    the twin's true pose, the running behaviour and what it is doing, the E-stop, lift and LED. Needs the simulation."""
+    return _get("/api/ontology/sensors")
+
+
+@server.tool()
+def commands() -> list:
+    """What the robot accepts: each command's name, gateway route, whether a facilitator must confirm it, and its
+    parameters with their limits (from the ontology's SHACL shapes)."""
+    return _get("/api/ontology/commands")
+
+
+@server.tool()
+def check_command(name: str, params: Optional[dict] = None) -> list[str]:
+    """Check a command against the robot's ontology before proposing it: [] when the robot accepts it, else what is
+    wrong, in words (e.g. a speed past the motors' limit, an unknown behaviour). Example: check_command("drive",
+    {"linear": 0.08, "angular": 0})."""
+    web.ensure_server()
+    return web.call("POST", "/api/ontology/check", {"name": name, "params": params or {}})["errors"]
+
+
+@server.tool()
+def command(name: str, params: Optional[dict] = None) -> Any:
+    """Ask the robot to do something: drive {linear m/s, angular rad/s} (repeat within 0.5 s to keep driving),
+    behaviour {name}, button {name}, clap {n}, lift {up}, led {r, g, b}, reset, place {name, x, y, yaw}.
+    It is checked against the ontology first; then it is a proposal the facilitator confirms. For the
+    emergency stop use estop()."""
+    params = dict(params or {})
+    if name == "drive":
+        params.setdefault("linear", 0.0)
+        params.setdefault("angular", 0.0)
+    if name == "estop":
+        return estop(bool(params.get("on", True)))
+    errors = check_command(name, params)
     if errors:
-        # web.ToolError, not ValueError: only this kind reaches the agent's model
         raise web.ToolError("; ".join(errors))
-    return engine.summarise(note)
-
-
-def _qualify(name: str, folder: str) -> str:
-    path = f"/api/notes/{urllib.parse.quote(name)}"
-    return f"{path}?folder={urllib.parse.quote(folder)}" if folder else path
+    what = ", ".join(f"{k} {v}" for k, v in params.items())
+    return act(f"Robot: {name}" + (f" ({what})" if what else ""), "POST", f"/api/robot/{name}", params)
 
 
 @server.tool()
-def list_notes() -> list[dict]:
-    """Every saved note, with its folder and version."""
+def estop(on: bool = True) -> dict:
+    """The emergency stop: on holds the motors at once, whatever else is sent; off releases them. Never a proposal:
+    safety does not wait for a click."""
     web.ensure_server()
-    return web.call("GET", "/api/notes")
-
-
-@server.tool()
-def read_note(name: str, folder: str = "") -> dict:
-    """One note: {name, folder, version, data}. With no folder, the user's
-    copy wins over a shared one of the same name."""
-    web.ensure_server()
-    return web.call("GET", _qualify(name, folder))
-
-
-@server.tool()
-def save_note(name: str, note: dict, folder: str = "",
-              base_version: Optional[str] = None) -> dict:
-    """Write a note. With no folder it goes back where it lives, or to 'user'
-    when new. Pass base_version from read_note: a save against a version that
-    has since changed is refused, and the error carries the current content."""
-    web.ensure_server()
-    payload = {"note": note, "folder": folder or None, "base_version": base_version}
-    return web.call("PUT", _qualify(name, ""), payload)
-
-
-@server.tool()
-def delete_note(name: str, folder: str = "") -> dict:
-    """Delete a note. Say which folder when the name exists in both."""
-    web.ensure_server()
-    return web.call("DELETE", _qualify(name, folder))
+    return web.call("POST", "/api/robot/estop", {"on": on})
 
 
 def main() -> int:

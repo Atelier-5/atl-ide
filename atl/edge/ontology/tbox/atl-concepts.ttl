@@ -1,0 +1,54 @@
+@prefix atl:  <https://atelier-5.github.io/atl/ontology#> .
+@prefix skos: <http://www.w3.org/2004/02/skos/core#> .
+
+# The concept schemes of the Atelier-5 robot ontology. A behaviour, a button, a
+# topic's direction and a learning domain are data, not code: a robot's A-Box and
+# a request point at these concepts, and the shapes check they are in the scheme.
+
+atl:Behaviours a skos:ConceptScheme ; skos:prefLabel "built-in behaviours"@en , "comportements intégrés"@fr , "eingebaute Verhalten"@de .
+atl:friendly a skos:Concept ; skos:inScheme atl:Behaviours ; skos:notation "friendly" ; atl:ledColour "#00ff00" ;
+    skos:prefLabel "Friendly"@en , "Amical"@fr , "Freundlich"@de .
+atl:explorer a skos:Concept ; skos:inScheme atl:Behaviours ; skos:notation "explorer" ; atl:ledColour "#ffff00" ;
+    skos:prefLabel "Explorer"@en , "Explorateur"@fr , "Entdecker"@de .
+atl:fearful a skos:Concept ; skos:inScheme atl:Behaviours ; skos:notation "fearful" ; atl:ledColour "#ff0000" ;
+    skos:prefLabel "Fearful"@en , "Peureux"@fr , "Ängstlich"@de .
+atl:inspector a skos:Concept ; skos:inScheme atl:Behaviours ; skos:notation "inspector" ; atl:ledColour "#00ccff" ;
+    skos:prefLabel "Inspector"@en , "Enquêteur"@fr , "Inspektor"@de .
+atl:attentive a skos:Concept ; skos:inScheme atl:Behaviours ; skos:notation "attentive" ; atl:ledColour "#0000ff" ;
+    skos:prefLabel "Attentive"@en , "Attentif"@fr , "Aufmerksam"@de .
+atl:obedient a skos:Concept ; skos:inScheme atl:Behaviours ; skos:notation "obedient" ; atl:ledColour "#ff0099" ;
+    skos:prefLabel "Obedient"@en , "Obéissant"@fr , "Gehorsam"@de .
+atl:none a skos:Concept ; skos:inScheme atl:Behaviours ; skos:notation "none" ; atl:ledColour "#000000" ;
+    skos:prefLabel "None"@en , "Aucun"@fr , "Keines"@de .
+
+atl:Buttons a skos:ConceptScheme ; skos:prefLabel "touch buttons"@en , "boutons tactiles"@fr , "Berührungstasten"@de .
+atl:button_forward a skos:Concept ; skos:inScheme atl:Buttons ; skos:notation "forward" ;
+    skos:prefLabel "Forward button"@en , "Bouton avant"@fr , "Taste vorne"@de .
+atl:button_backward a skos:Concept ; skos:inScheme atl:Buttons ; skos:notation "backward" ;
+    skos:prefLabel "Backward button"@en , "Bouton arrière"@fr , "Taste hinten"@de .
+atl:button_left a skos:Concept ; skos:inScheme atl:Buttons ; skos:notation "left" ;
+    skos:prefLabel "Left button"@en , "Bouton gauche"@fr , "Taste links"@de .
+atl:button_right a skos:Concept ; skos:inScheme atl:Buttons ; skos:notation "right" ;
+    skos:prefLabel "Right button"@en , "Bouton droit"@fr , "Taste rechts"@de .
+atl:button_center a skos:Concept ; skos:inScheme atl:Buttons ; skos:notation "center" ;
+    skos:prefLabel "Centre button"@en , "Bouton central"@fr , "Taste in der Mitte"@de .
+
+atl:Directions a skos:ConceptScheme ; skos:prefLabel "topic directions"@en , "sens des topics"@fr , "Richtungen der Topics"@de .
+atl:In a skos:Concept ; skos:inScheme atl:Directions ; skos:notation "in" ; skos:prefLabel "to the robot"@en , "vers le robot"@fr , "zum Roboter"@de .
+atl:Out a skos:Concept ; skos:inScheme atl:Directions ; skos:notation "out" ; skos:prefLabel "from the robot"@en , "du robot"@fr , "vom Roboter"@de .
+
+atl:Domains a skos:ConceptScheme ; skos:prefLabel "learning domains"@en , "domaines d’apprentissage"@fr , "Lernbereiche"@de .
+atl:domain_discover a skos:Concept ; skos:inScheme atl:Domains ; skos:notation "0" ;
+    skos:prefLabel "Discover"@en , "Découvrir"@fr , "Entdecken"@de .
+atl:domain_move a skos:Concept ; skos:inScheme atl:Domains ; skos:notation "1" ;
+    skos:prefLabel "Move"@en , "Se déplacer"@fr , "Bewegen"@de .
+atl:domain_sense a skos:Concept ; skos:inScheme atl:Domains ; skos:notation "2" ;
+    skos:prefLabel "Sense"@en , "Percevoir"@fr , "Wahrnehmen"@de .
+atl:domain_navigate a skos:Concept ; skos:inScheme atl:Domains ; skos:notation "3" ;
+    skos:prefLabel "Navigate"@en , "Naviguer"@fr , "Navigieren"@de .
+atl:domain_climb a skos:Concept ; skos:inScheme atl:Domains ; skos:notation "4" ;
+    skos:prefLabel "Climb & cross"@en , "Grimper et franchir"@fr , "Klettern und Überqueren"@de .
+atl:domain_carry a skos:Concept ; skos:inScheme atl:Domains ; skos:notation "5" ;
+    skos:prefLabel "Carry & push"@en , "Porter et pousser"@fr , "Tragen und Schieben"@de .
+atl:domain_signal a skos:Concept ; skos:inScheme atl:Domains ; skos:notation "6" ;
+    skos:prefLabel "Signal"@en , "Signaler"@fr , "Signalisieren"@de .

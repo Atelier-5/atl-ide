@@ -27,6 +27,7 @@ from flask import Response, abort, jsonify, render_template, request, stream_wit
 
 from . import engine as engine
 from . import i18n
+from . import ontology
 from . import sim
 from .i18n import _
 from .core import server
@@ -171,6 +172,55 @@ def robot_stream():
             upstream.close()
     return Response(stream_with_context(relay()), mimetype="multipart/x-mixed-replace; boundary=frame",
                     headers={"Cache-Control": "no-store"})
+
+
+# --------------------------------------------------------------- ontology ----
+#
+# The robot as data (ontology.py): what it is, what its readings mean, what it
+# accepts, and whether a request is one it accepts. The MCP tools use these, so an
+# agent and the page read the same description.
+
+ROBOTS = ontology.Robots(lambda: sim.gateway_text("/robot.ttl"), twin_dir)
+
+
+def _abox():
+    try:
+        return ROBOTS.abox(), None
+    except ontology.NoRobot as none:
+        return None, (jsonify({"errors": [_(str(none))]}), 404)
+
+
+@app.get("/api/ontology/robot")
+def ontology_robot():
+    g, err = _abox()
+    return err or jsonify(ontology.robot(g, i18n.current()))
+
+
+@app.get("/api/ontology/commands")
+def ontology_commands():
+    g, err = _abox()
+    return err or jsonify(ontology.commands(g, i18n.current()))
+
+
+@app.get("/api/ontology/sensors")
+def ontology_sensors():
+    g, err = _abox()
+    if err:
+        return err
+    try:
+        state = sim.gateway("GET", "/state", timeout=2.0)
+    except sim.GatewayDown:
+        return _down()
+    return jsonify(ontology.sensors(g, state, i18n.current()))
+
+
+@app.post("/api/ontology/check")
+def ontology_check():
+    g, err = _abox()
+    if err:
+        return err
+    data = body()
+    return jsonify({"errors": ontology.check(g, str(data.get("name", "")), data.get("params") or {})})
 
 
 # ---------------------------------------------------------------- engine ----

@@ -1,0 +1,187 @@
+@prefix atl:     <https://atelier-5.github.io/atl/ontology#> .
+@prefix sosa:    <http://www.w3.org/ns/sosa/> .
+@prefix ssn:     <http://www.w3.org/ns/ssn/> .
+@prefix owl:     <http://www.w3.org/2002/07/owl#> .
+@prefix rdf:     <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs:    <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix xsd:     <http://www.w3.org/2001/XMLSchema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema:  <https://schema.org/> .
+
+# ============================================================
+# The Atelier-5 robot ontology (T-Box), v0.1.
+#
+# A thin layer over SOSA/SSN (W3C): define only what they do not have.
+#   - a robot is a sosa:Platform that sosa:hosts its sensors and actuators;
+#   - every sensor and actuator names the ROS 2 topic it publishes on or
+#     listens on (the contract, atl-thymio/0.1);
+#   - a robot atl:accepts commands; each command has a gateway route, says
+#     whether a facilitator must confirm it, and names the class of its
+#     requests, which shapes/atl-shapes.ttl checks.
+#
+# Each robot body (atl-bot-*) brings its own A-Box (GET /robot.ttl on its
+# gateway). An agent reads both, so it can drive any robot that keeps a
+# contract, and check a command before it proposes it.
+#
+# Labels: English is the master; French and German for everything a person sees.
+# ============================================================
+
+<https://atelier-5.github.io/atl/ontology>
+    a owl:Ontology ;
+    rdfs:label "Atelier-5 robot ontology"@en , "Ontologie des robots d'Atelier-5"@fr , "Atelier-5-Roboterontologie"@de ;
+    dcterms:description "Robots, their sensors and actuators, the topics they speak on and the commands they accept."@en ;
+    owl:imports <http://www.w3.org/ns/sosa/> ;
+    owl:versionInfo "0.1.0" .
+
+# -- robots --------------------------------------------------------------------------------
+
+atl:Robot a owl:Class ;
+    rdfs:subClassOf sosa:Platform ;
+    rdfs:label "robot"@en , "robot"@fr , "Roboter"@de ;
+    rdfs:comment "A robot body: a platform that hosts sensors and actuators and keeps a contract."@en .
+
+atl:Thymio2 a owl:Class ;
+    rdfs:subClassOf atl:Robot ;
+    rdfs:label "Thymio II"@en , "Thymio II"@fr , "Thymio II"@de .
+
+atl:contract a owl:DatatypeProperty ;
+    rdfs:domain atl:Robot ; rdfs:range xsd:string ;
+    rdfs:label "contract"@en , "contrat"@fr , "Vertrag"@de ;
+    rdfs:comment "The topic contract the robot keeps, e.g. atl-thymio/0.1. Its twin and the physical robot keep the same."@en .
+
+atl:wheelRadius a owl:DatatypeProperty ; rdfs:domain atl:Robot ; rdfs:range xsd:decimal ;
+    rdfs:label "wheel radius (m)"@en , "rayon des roues (m)"@fr , "Radradius (m)"@de .
+atl:wheelTrack a owl:DatatypeProperty ; rdfs:domain atl:Robot ; rdfs:range xsd:decimal ;
+    rdfs:label "distance between the wheels (m)"@en , "écart entre les roues (m)"@fr , "Spurweite (m)"@de .
+atl:maxWheelSpeed a owl:DatatypeProperty ; rdfs:domain atl:Robot ; rdfs:range xsd:decimal ;
+    rdfs:label "top wheel speed (rad/s)"@en , "vitesse maximale des roues (rad/s)"@fr , "Höchstdrehzahl der Räder (rad/s)"@de .
+atl:maxLinear a owl:DatatypeProperty ; rdfs:domain atl:Robot ; rdfs:range xsd:decimal ;
+    rdfs:label "top speed (m/s)"@en , "vitesse maximale (m/s)"@fr , "Höchstgeschwindigkeit (m/s)"@de .
+atl:maxAngular a owl:DatatypeProperty ; rdfs:domain atl:Robot ; rdfs:range xsd:decimal ;
+    rdfs:label "top turning speed (rad/s)"@en , "vitesse de rotation maximale (rad/s)"@fr , "höchste Drehgeschwindigkeit (rad/s)"@de .
+
+# -- sensors and actuators -------------------------------------------------------------------
+
+atl:ProximitySensor a owl:Class ; rdfs:subClassOf sosa:Sensor ;
+    rdfs:label "proximity sensor"@en , "capteur de proximité"@fr , "Abstandssensor"@de ;
+    rdfs:comment "Infra-red, horizontal: how much light an obstacle in front reflects. Colour matters."@en .
+atl:GroundSensor a owl:Class ; rdfs:subClassOf sosa:Sensor ;
+    rdfs:label "ground sensor"@en , "capteur de sol"@fr , "Bodensensor"@de ;
+    rdfs:comment "Infra-red, pointing down: bright on white, dark on a black line, nothing over empty space."@en .
+atl:Accelerometer a owl:Class ; rdfs:subClassOf sosa:Sensor ;
+    rdfs:label "accelerometer"@en , "accéléromètre"@fr , "Beschleunigungssensor"@de .
+atl:WheelEncoder a owl:Class ; rdfs:subClassOf sosa:Sensor ;
+    rdfs:label "wheel encoder"@en , "codeur de roue"@fr , "Radgeber"@de .
+
+atl:Motor a owl:Class ; rdfs:subClassOf sosa:Actuator ;
+    rdfs:label "motor"@en , "moteur"@fr , "Motor"@de .
+atl:Led a owl:Class ; rdfs:subClassOf sosa:Actuator ;
+    rdfs:label "light"@en , "lumière"@fr , "Licht"@de .
+
+atl:deviceName a owl:DatatypeProperty ; rdfs:range xsd:string ;
+    rdfs:label "device"@en , "dispositif"@fr , "Gerät"@de ;
+    rdfs:comment "The device's name in the robot (Webots and firmware), e.g. prox.horizontal.2."@en .
+atl:index a owl:DatatypeProperty ; rdfs:range xsd:integer ;
+    rdfs:label "position in its topic's array"@en , "position dans le tableau du topic"@fr , "Stelle im Array des Topics"@de .
+atl:aheadOfCentre a owl:DatatypeProperty ; rdfs:range xsd:decimal ;
+    rdfs:label "ahead of the robot's centre (m)"@en , "devant le centre du robot (m)"@fr , "vor der Robotermitte (m)"@de .
+atl:leftOfCentre a owl:DatatypeProperty ; rdfs:range xsd:decimal ;
+    rdfs:label "left of the robot's centre (m)"@en , "à gauche du centre du robot (m)"@fr , "links der Robotermitte (m)"@de .
+atl:side a owl:DatatypeProperty ; rdfs:range xsd:string ;
+    rdfs:label "side"@en , "côté"@fr , "Seite"@de .
+atl:unit a owl:DatatypeProperty ; rdfs:range xsd:string ;
+    rdfs:label "unit"@en , "unité"@fr , "Einheit"@de .
+atl:rawMin a owl:DatatypeProperty ; rdfs:range xsd:decimal ;
+    rdfs:label "lowest raw value"@en , "valeur brute minimale"@fr , "kleinster Rohwert"@de .
+atl:rawMax a owl:DatatypeProperty ; rdfs:range xsd:decimal ;
+    rdfs:label "highest raw value"@en , "valeur brute maximale"@fr , "größter Rohwert"@de .
+
+# -- topics: the contract ------------------------------------------------------------------
+
+atl:Topic a owl:Class ;
+    rdfs:label "topic"@en , "topic"@fr , "Topic"@de ;
+    rdfs:comment "A ROS 2 topic of the contract: where a sensor publishes, or an actuator listens."@en .
+atl:publishesOn a owl:ObjectProperty ; rdfs:domain sosa:Sensor ; rdfs:range atl:Topic ;
+    rdfs:label "publishes on"@en , "publie sur"@fr , "veröffentlicht auf"@de .
+atl:listensOn a owl:ObjectProperty ; rdfs:domain sosa:Actuator ; rdfs:range atl:Topic ;
+    rdfs:label "listens on"@en , "écoute sur"@fr , "hört auf"@de .
+atl:path a owl:DatatypeProperty ; rdfs:domain atl:Topic ; rdfs:range xsd:string ;
+    rdfs:label "path"@en , "chemin"@fr , "Pfad"@de .
+atl:messageType a owl:DatatypeProperty ; rdfs:domain atl:Topic ; rdfs:range xsd:string ;
+    rdfs:label "message type"@en , "type de message"@fr , "Nachrichtentyp"@de .
+atl:direction a owl:ObjectProperty ; rdfs:domain atl:Topic ;
+    rdfs:label "direction"@en , "sens"@fr , "Richtung"@de ;
+    rdfs:comment "A concept from atl:Directions: in (to the robot) or out (from it)."@en .
+atl:rateHz a owl:DatatypeProperty ; rdfs:domain atl:Topic ; rdfs:range xsd:decimal ;
+    rdfs:label "rate (Hz)"@en , "fréquence (Hz)"@fr , "Rate (Hz)"@de .
+
+# -- what was measured ---------------------------------------------------------------------
+
+atl:Measurement a owl:Class ;
+    rdfs:label "measurement"@en , "mesure"@fr , "Messung"@de ;
+    rdfs:comment "A raw value measured in a named situation (on the twin, later on the real robot)."@en .
+atl:measured a owl:ObjectProperty ; rdfs:domain sosa:Sensor ; rdfs:range atl:Measurement ;
+    rdfs:label "measured"@en , "mesuré"@fr , "gemessen"@de .
+atl:situation a owl:DatatypeProperty ; rdfs:domain atl:Measurement ; rdfs:range rdf:langString ;
+    rdfs:label "situation"@en , "situation"@fr , "Situation"@de .
+atl:value a owl:DatatypeProperty ; rdfs:domain atl:Measurement ; rdfs:range xsd:decimal ;
+    rdfs:label "value"@en , "valeur"@fr , "Wert"@de .
+atl:measuredOn a owl:DatatypeProperty ; rdfs:domain atl:Measurement ; rdfs:range xsd:string ;
+    rdfs:label "measured on"@en , "mesuré sur"@fr , "gemessen an"@de ;
+    rdfs:comment "twin (Webots) or robot (the physical one)."@en .
+
+# -- commands ------------------------------------------------------------------------------
+
+atl:Command a owl:Class ;
+    rdfs:label "command"@en , "commande"@fr , "Befehl"@de ;
+    rdfs:comment "Something the robot accepts, through its gateway. A request for it is an instance of its request class."@en .
+atl:accepts a owl:ObjectProperty ; rdfs:domain atl:Robot ; rdfs:range atl:Command ;
+    rdfs:label "accepts"@en , "accepte"@fr , "akzeptiert"@de .
+atl:route a owl:DatatypeProperty ; rdfs:domain atl:Command ; rdfs:range xsd:string ;
+    rdfs:label "gateway route"@en , "route de la passerelle"@fr , "Gateway-Route"@de .
+atl:needsConfirmation a owl:DatatypeProperty ; rdfs:domain atl:Command ; rdfs:range xsd:boolean ;
+    rdfs:label "a facilitator confirms it"@en , "un animateur la confirme"@fr , "eine Begleitperson bestätigt ihn"@de ;
+    rdfs:comment "true: an agent can only propose it. false only for the emergency stop, which is always allowed."@en .
+atl:requestClass a owl:ObjectProperty ; rdfs:domain atl:Command ;
+    rdfs:label "request class"@en , "classe des requêtes"@fr , "Klasse der Anfragen"@de ;
+    rdfs:comment "The class a request for this command is checked as (shapes/atl-shapes.ttl)."@en .
+
+atl:CommandRequest a owl:Class ;
+    rdfs:label "command request"@en , "requête de commande"@fr , "Befehlsanfrage"@de .
+atl:DriveRequest a owl:Class ; rdfs:subClassOf atl:CommandRequest ; rdfs:label "drive"@en , "conduire"@fr , "fahren"@de .
+atl:BehaviourRequest a owl:Class ; rdfs:subClassOf atl:CommandRequest ; rdfs:label "start a behaviour"@en , "lancer un comportement"@fr , "ein Verhalten starten"@de .
+atl:ButtonRequest a owl:Class ; rdfs:subClassOf atl:CommandRequest ; rdfs:label "press a button"@en , "appuyer sur un bouton"@fr , "eine Taste drücken"@de .
+atl:ClapRequest a owl:Class ; rdfs:subClassOf atl:CommandRequest ; rdfs:label "clap"@en , "taper dans les mains"@fr , "klatschen"@de .
+atl:LiftRequest a owl:Class ; rdfs:subClassOf atl:CommandRequest ; rdfs:label "lift or put down"@en , "soulever ou reposer"@fr , "hochheben oder absetzen"@de .
+atl:LedRequest a owl:Class ; rdfs:subClassOf atl:CommandRequest ; rdfs:label "set the light"@en , "régler la lumière"@fr , "das Licht setzen"@de .
+atl:EstopRequest a owl:Class ; rdfs:subClassOf atl:CommandRequest ; rdfs:label "emergency stop"@en , "arrêt d'urgence"@fr , "Not-Halt"@de .
+atl:PlaceRequest a owl:Class ; rdfs:subClassOf atl:CommandRequest ; rdfs:label "move something on the table"@en , "déplacer quelque chose sur la table"@fr , "etwas auf dem Tisch verschieben"@de .
+atl:ResetRequest a owl:Class ; rdfs:subClassOf atl:CommandRequest ; rdfs:label "set the table back"@en , "remettre la table en place"@fr , "den Tisch zurücksetzen"@de .
+
+# request parameters (the gateway's JSON keys)
+atl:linear a owl:DatatypeProperty ; rdfs:range xsd:decimal ; rdfs:label "forward speed (m/s)"@en , "vitesse vers l'avant (m/s)"@fr , "Vorwärtsgeschwindigkeit (m/s)"@de .
+atl:angular a owl:DatatypeProperty ; rdfs:range xsd:decimal ; rdfs:label "turning speed (rad/s)"@en , "vitesse de rotation (rad/s)"@fr , "Drehgeschwindigkeit (rad/s)"@de .
+atl:behaviour a owl:ObjectProperty ; rdfs:label "behaviour"@en , "comportement"@fr , "Verhalten"@de .
+atl:button a owl:ObjectProperty ; rdfs:label "button"@en , "bouton"@fr , "Taste"@de .
+atl:claps a owl:DatatypeProperty ; rdfs:range xsd:integer ; rdfs:label "claps"@en , "claquements"@fr , "Klatscher"@de .
+atl:up a owl:DatatypeProperty ; rdfs:range xsd:boolean ; rdfs:label "up"@en , "en haut"@fr , "oben"@de .
+atl:engaged a owl:DatatypeProperty ; rdfs:range xsd:boolean ; rdfs:label "engaged"@en , "enclenché"@fr , "aktiv"@de .
+atl:red a owl:DatatypeProperty ; rdfs:range xsd:decimal ; rdfs:label "red (0-1)"@en , "rouge (0-1)"@fr , "Rot (0-1)"@de .
+atl:green a owl:DatatypeProperty ; rdfs:range xsd:decimal ; rdfs:label "green (0-1)"@en , "vert (0-1)"@fr , "Grün (0-1)"@de .
+atl:blue a owl:DatatypeProperty ; rdfs:range xsd:decimal ; rdfs:label "blue (0-1)"@en , "bleu (0-1)"@fr , "Blau (0-1)"@de .
+atl:thing a owl:DatatypeProperty ; rdfs:range xsd:string ; rdfs:label "what"@en , "quoi"@fr , "was"@de .
+atl:x a owl:DatatypeProperty ; rdfs:range xsd:decimal ; rdfs:label "x on the table (m)"@en , "x sur la table (m)"@fr , "x auf dem Tisch (m)"@de .
+atl:y a owl:DatatypeProperty ; rdfs:range xsd:decimal ; rdfs:label "y on the table (m)"@en , "y sur la table (m)"@fr , "y auf dem Tisch (m)"@de .
+atl:yaw a owl:DatatypeProperty ; rdfs:range xsd:decimal ; rdfs:label "turned (rad)"@en , "orientation (rad)"@fr , "Drehung (rad)"@de .
+atl:jsonKey a owl:AnnotationProperty ;
+    rdfs:label "JSON key"@en ;
+    rdfs:comment "The key of this parameter in the gateway's JSON body."@en .
+
+atl:linear atl:jsonKey "linear" . atl:angular atl:jsonKey "angular" . atl:behaviour atl:jsonKey "name" .
+atl:button atl:jsonKey "name" . atl:claps atl:jsonKey "n" . atl:up atl:jsonKey "up" . atl:engaged atl:jsonKey "on" .
+atl:red atl:jsonKey "r" . atl:green atl:jsonKey "g" . atl:blue atl:jsonKey "b" . atl:thing atl:jsonKey "name" .
+atl:x atl:jsonKey "x" . atl:y atl:jsonKey "y" . atl:yaw atl:jsonKey "yaw" .
+
+# a behaviour's colour
+atl:ledColour a owl:DatatypeProperty ; rdfs:range xsd:string ;
+    rdfs:label "LED colour"@en , "couleur de la LED"@fr , "LED-Farbe"@de .

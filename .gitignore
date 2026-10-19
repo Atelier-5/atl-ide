@@ -245,3 +245,4 @@ shots/
 
 # Archify working folders (candidates, receipts)
 .archify/
+atl/static/*.delivery.json

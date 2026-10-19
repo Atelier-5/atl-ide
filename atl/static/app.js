@@ -80,7 +80,7 @@ $("#bars").innerHTML = PROX.map(([x, y, a], i) => `
 $("#grounds").innerHTML = [[-12, -62], [12, -62]].map(([x, y], i) =>
   `<circle class="ground" id="ground-${i}" cx="${x}" cy="${y}" r="7"/><text class="label" x="${x}" y="${y + 18}" text-anchor="middle">g${i}</text>`).join("");
 
-// What the sensors read: bar length for the 7 horizontal values (raw, 0..4300), grey for the 2 ground values (0..1023).
+// What the sensors read: bar length for the 7 horizontal values (raw, 0..4300), grey for the 2 ground values (0..1000).
 function drawSensors(prox, ground, led) {
   prox.forEach((v, i) => {
     const h = Math.max(0, Math.min(1, v / 4300)) * BAR_LEN;
@@ -92,7 +92,7 @@ function drawSensors(prox, ground, led) {
     const dot = $(`#ground-${i}`);
     dot.classList.toggle("ground--none", v == null);
     if (v == null) { dot.style.fill = ""; return; }
-    const g = Math.round(Math.max(0, Math.min(1, v / 1023)) * 255);
+    const g = Math.round(Math.max(0, Math.min(1, v / 1000)) * 255);
     dot.style.fill = `rgb(${g} ${g} ${g})`;
   });
   $("#led-top").setAttribute("fill", led && led.some((c) => c > 0) ? rgb(led) : "none");
@@ -208,7 +208,7 @@ pollSim();
 /* the robot live: sensors, plots, behaviour, E-stop */
 const PLOT_LEN = 120;                                    // 12 s at 10 Hz
 const PLOTS = { prox: [], ground: [], acc: [], wheels: [] };
-const PLOT_RANGE = { prox: [0, 4300], ground: [0, 1023], acc: [-12, 12], wheels: [-10, 10] };
+const PLOT_RANGE = { prox: [0, 4300], ground: [0, 1000], acc: [-12, 12], wheels: [-10, 10] };
 let plotsPaused = false;
 const css = (name) => getComputedStyle(document.documentElement).getPropertyValue(name).trim();
 function drawPlot(id, rows) {

@@ -1,63 +1,43 @@
 ---
 name: atl-ide
-description: atl-ide: the Atelier-5 robotics IDE, a Thymio II twin in Webots over ROS 2. Validate and summarise notes (JSON objects with a title, body and tags), and read, save and delete them in the user's folder or the shared samples, from the command line, the atl-ide MCP tools or the browser page. Use when someone asks to work with atl-ide, or runs `atl-ide`. REPLACE this sample description with the tool's real triggers.
+description: atl-ide, the Atelier-5 robotics IDE. A Thymio II on a virtual table in Webots, explored by young people (12+) with a facilitator. Read what the robot is and senses, and propose what it should do, through the atl-ide MCP tools. Use when someone asks about the Thymio, its sensors or behaviours, the virtual table, or wants the robot to move.
 ---
 
 # atl-ide
 
-<!--
-  The template's sample skill. Rewrite it for the tool, and keep three things
-  true: the frontmatter name stays "atl-ide", every `atl-ide <command>`
-  line names a subcommand that exists (tests/test_core.py checks), and after
-  editing, `atl-ide-skill --sync` copies this file to .claude/skills and
-  plugin/skills. The packaged copy in atl/skill/ is the source.
--->
+A Thymio II on a white table (1.2 × 0.8 m, open edges), with a black line, a carton box
+and a wooden block, simulated in Webots. Young people explore it with a facilitator
+(Atelier-5's *Facilitated Experimentation*: try it, break it, fix it, show it).
 
-atl-ide: the Atelier-5 robotics IDE, a Thymio II twin in Webots over ROS 2.
+## Your role: a correspondant
 
-## What a note is
+Ask what the group observed and what they expect **before** you suggest anything. Let them
+find the names of things: the page hides the sensors' names until the facilitator shows
+them, so don't give them away unasked. Answer in the language they write in.
 
-A JSON object:
+## The tools
 
-```json
-{"title": "Kick-off", "body": "Agenda\n- scope\n- dates", "tags": ["project"]}
-```
+| | |
+|---|---|
+| `simulation()` | is the table running; what is missing to start it |
+| `robot()` | what the robot is, from its ontology: sensors and actuators, where they sit (m), raw ranges, what was measured, the commands it accepts |
+| `sensors()` | the live readings, each named and placed; behaviour, E-stop, lift, LED |
+| `commands()` | each command's parameters and limits |
+| `check_command(name, params)` | `[]` or what is wrong, in words. **Always before `command()`.** |
+| `command(name, params)` | a **proposal** the facilitator confirms in the chat panel |
+| `start_simulation()`, `stop_simulation()` | proposals too |
+| `estop(on)` | the emergency stop: at once, never a proposal |
 
-`title` is required (at most 120 characters), `body` is text, and `tags` is a
-list of strings.
+Never say the robot did something before `sensors()` shows it. Driving lasts 0.5 s per
+command (a watchdog), and is refused while a built-in behaviour runs: start `none` first.
 
-## Working through MCP
+## What the readings mean (measured on the twin)
 
-The `atl-ide` MCP server starts the web server if it is not running, so
-you and the person at the browser work on the same files.
-
-- `validate_note(note)` returns everything wrong with it. Run it before saving
-  anything you put together by hand.
-- `summarise_note(note)` gives word and line counts and the tags.
-- `list_notes()`, `read_note(name, folder)`, `save_note(name, note, folder,
-  base_version)`, `delete_note(name, folder)`.
-- `server_url()` gives the page to hand to a person. `stop_server()` shuts it down.
-
-## Folders
-
-Notes live in two folders. `user` (`./mydocs`, git-ignored) holds
-the person's own. `shared` holds the samples that ship with the tool. A save
-with no folder goes back to where the note already lives, or to `user` when it
-is new. **Always pass the `version` you read as `base_version`:** a save against
-a version that has changed since then is refused (HTTP 409). Read the note again
-and merge, don't overwrite.
+- Proximity (7, 0–6 front left to right, 5–6 rear): 0 to about 4300. The carton box is seen
+  up to 5.25 cm, the darker wooden block only up to 4.5 cm: colour matters.
+- Ground (2): about 765 on the white table, 288 on the black line, 0 when lifted or over the edge.
+- Accelerometer: about 23 raw units per g; `imu` in m/s².
 
 ## Without MCP
 
-```bash
-atl-ide validate note.json
-atl-ide summarise note.json
-```
-
-From a checkout, without installing: `python3 -m atl.engine summarise note.json`.
-The page is `./run.sh` (http://127.0.0.1:8780), or `atl-ide-web` when installed.
-
-## Judgement
-
-- Say what you changed and where it was saved (folder and name).
-- Never delete a shared sample unless you were asked to.
+The page is `./run.sh` (http://127.0.0.1:8780): Start the simulation on the Table screen.

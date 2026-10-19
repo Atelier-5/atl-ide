@@ -1,0 +1,96 @@
+@prefix atl:    <https://atelier-5.github.io/atl/ontology#> .
+@prefix atlsh:  <https://atelier-5.github.io/atl/shapes#> .
+@prefix sh:     <http://www.w3.org/ns/shacl#> .
+@prefix skos:   <http://www.w3.org/2004/02/skos/core#> .
+@prefix sosa:   <http://www.w3.org/ns/sosa/> .
+@prefix schema: <https://schema.org/> .
+@prefix xsd:    <http://www.w3.org/2001/XMLSchema#> .
+
+# ============================================================
+# SHACL shapes of the Atelier-5 robot ontology, v0.1.
+#   - what a robot's A-Box must say (atlsh:RobotShape and friends);
+#   - what a request for each command must carry (atlsh:*RequestShape).
+# Validate together with tbox/atl-concepts.ttl, so a behaviour or a button can be
+# checked against its scheme. Limits are the Thymio II's (contract atl-thymio/0.1);
+# a robot with other motors brings its own limits in its A-Box later.
+# ============================================================
+
+# -- a robot's A-Box -------------------------------------------------------------------------
+
+atlsh:RobotShape a sh:NodeShape ;
+    sh:targetClass atl:Robot , atl:Thymio2 ;
+    sh:property [ sh:path schema:name ; sh:minCount 1 ; sh:message "A robot needs a name."@en ] ;
+    sh:property [ sh:path atl:contract ; sh:minCount 1 ; sh:maxCount 1 ; sh:datatype xsd:string ;
+                  sh:message "A robot names the one contract it keeps."@en ] ;
+    sh:property [ sh:path sosa:hosts ; sh:minCount 1 ; sh:message "A robot hosts at least one sensor or actuator."@en ] ;
+    sh:property [ sh:path atl:accepts ; sh:class atl:Command ; sh:message "A robot accepts commands."@en ] .
+
+atlsh:SensorShape a sh:NodeShape ;
+    sh:targetClass atl:ProximitySensor , atl:GroundSensor , atl:Accelerometer , atl:WheelEncoder ;
+    sh:property [ sh:path atl:publishesOn ; sh:minCount 1 ; sh:class atl:Topic ; sh:message "A sensor publishes on a topic of the contract."@en ] ;
+    sh:property [ sh:path atl:deviceName ; sh:minCount 1 ; sh:message "A sensor names its device."@en ] .
+
+atlsh:ActuatorShape a sh:NodeShape ;
+    sh:targetClass atl:Motor , atl:Led ;
+    sh:property [ sh:path atl:listensOn ; sh:minCount 1 ; sh:class atl:Topic ; sh:message "An actuator listens on a topic of the contract."@en ] .
+
+atlsh:TopicShape a sh:NodeShape ;
+    sh:targetClass atl:Topic ;
+    sh:property [ sh:path atl:path ; sh:minCount 1 ; sh:maxCount 1 ; sh:pattern "^/" ; sh:message "A topic has one path, starting with /."@en ] ;
+    sh:property [ sh:path atl:direction ; sh:minCount 1 ; sh:in ( atl:In atl:Out ) ; sh:message "A topic goes in or out."@en ] .
+
+atlsh:CommandShape a sh:NodeShape ;
+    sh:targetClass atl:Command ;
+    sh:property [ sh:path atl:route ; sh:minCount 1 ; sh:maxCount 1 ; sh:pattern "^/" ; sh:message "A command has one gateway route."@en ] ;
+    sh:property [ sh:path atl:needsConfirmation ; sh:minCount 1 ; sh:datatype xsd:boolean ;
+                  sh:message "A command says whether a facilitator must confirm it."@en ] ;
+    sh:property [ sh:path atl:requestClass ; sh:minCount 1 ; sh:message "A command names the class of its requests."@en ] .
+
+# -- requests: what an agent (or a program) asks the robot to do ---------------------------------
+
+atlsh:DriveRequestShape a sh:NodeShape ;
+    sh:targetClass atl:DriveRequest ;
+    sh:property [ sh:path atl:linear ; sh:minCount 1 ; sh:maxCount 1 ; sh:minInclusive -0.2 ; sh:maxInclusive 0.2 ;
+                  sh:message "Forward speed is between -0.2 and 0.2 m/s (the Thymio's motors)."@en ] ;
+    sh:property [ sh:path atl:angular ; sh:minCount 1 ; sh:maxCount 1 ; sh:minInclusive -4.0 ; sh:maxInclusive 4.0 ;
+                  sh:message "Turning speed is between -4 and 4 rad/s."@en ] .
+
+atlsh:BehaviourRequestShape a sh:NodeShape ;
+    sh:targetClass atl:BehaviourRequest ;
+    sh:property [ sh:path atl:behaviour ; sh:minCount 1 ; sh:maxCount 1 ;
+                  sh:node atlsh:InBehaviours ;
+                  sh:message "A behaviour is friendly, explorer, fearful, inspector, attentive, obedient or none."@en ] .
+atlsh:InBehaviours a sh:NodeShape ; sh:property [ sh:path skos:inScheme ; sh:hasValue atl:Behaviours ] .
+
+atlsh:ButtonRequestShape a sh:NodeShape ;
+    sh:targetClass atl:ButtonRequest ;
+    sh:property [ sh:path atl:button ; sh:minCount 1 ; sh:maxCount 1 ; sh:node atlsh:InButtons ;
+                  sh:message "A button is forward, backward, left, right or center."@en ] .
+atlsh:InButtons a sh:NodeShape ; sh:property [ sh:path skos:inScheme ; sh:hasValue atl:Buttons ] .
+
+atlsh:ClapRequestShape a sh:NodeShape ;
+    sh:targetClass atl:ClapRequest ;
+    sh:property [ sh:path atl:claps ; sh:minCount 1 ; sh:maxCount 1 ; sh:datatype xsd:integer ; sh:minInclusive 1 ; sh:maxInclusive 3 ;
+                  sh:message "Clap 1, 2 or 3 times."@en ] .
+
+atlsh:LiftRequestShape a sh:NodeShape ;
+    sh:targetClass atl:LiftRequest ;
+    sh:property [ sh:path atl:up ; sh:minCount 1 ; sh:maxCount 1 ; sh:datatype xsd:boolean ; sh:message "Lift says up (true) or down (false)."@en ] .
+
+atlsh:LedRequestShape a sh:NodeShape ;
+    sh:targetClass atl:LedRequest ;
+    sh:property [ sh:path atl:red ; sh:minCount 1 ; sh:minInclusive 0 ; sh:maxInclusive 1 ; sh:message "Red is between 0 and 1."@en ] ;
+    sh:property [ sh:path atl:green ; sh:minCount 1 ; sh:minInclusive 0 ; sh:maxInclusive 1 ; sh:message "Green is between 0 and 1."@en ] ;
+    sh:property [ sh:path atl:blue ; sh:minCount 1 ; sh:minInclusive 0 ; sh:maxInclusive 1 ; sh:message "Blue is between 0 and 1."@en ] .
+
+atlsh:EstopRequestShape a sh:NodeShape ;
+    sh:targetClass atl:EstopRequest ;
+    sh:property [ sh:path atl:engaged ; sh:minCount 1 ; sh:maxCount 1 ; sh:datatype xsd:boolean ;
+                  sh:message "The emergency stop is engaged (true) or released (false)."@en ] .
+
+atlsh:PlaceRequestShape a sh:NodeShape ;
+    sh:targetClass atl:PlaceRequest ;
+    sh:property [ sh:path atl:thing ; sh:minCount 1 ; sh:in ( "thymio_1" "carton box" "wooden block" ) ;
+                  sh:message "Place the robot (thymio_1), the carton box or the wooden block."@en ] ;
+    sh:property [ sh:path atl:x ; sh:minCount 1 ; sh:minInclusive -0.6 ; sh:maxInclusive 0.6 ; sh:message "x is on the table: -0.6 to 0.6 m."@en ] ;
+    sh:property [ sh:path atl:y ; sh:minCount 1 ; sh:minInclusive -0.4 ; sh:maxInclusive 0.4 ; sh:message "y is on the table: -0.4 to 0.4 m."@en ] .

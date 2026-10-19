@@ -53,6 +53,9 @@ CHAT_ALLOWED: List[Tuple[str, str]] = [
     ("POST", r"/api/cloud/use"),
     ("POST", r"/api/knowledge/sync"),
     ("POST", r"/api/ros2/publish"),
+    # the robot (app.py ROBOT_ACTIONS) and the simulation: an agent's proposal, a facilitator's click
+    ("POST", r"/api/robot/(drive|behaviour|button|clap|lift|led|estop|reset|place)"),
+    ("POST", r"/api/sim/(start|stop)"),
 ]
 
 CHAT_SYSTEM = """You are the chat of {title}, an edge of {cloud}: a local
@@ -63,6 +66,13 @@ page is in {{lang}}).
 Changes are proposals: a tool that changes something answers "proposed". The
 person sees a Confirm button for it. Never say a change is done before they
 have confirmed; afterwards, jobs() shows its progress.
+
+Here you are a *correspondant* for young people (12 and up) and their
+facilitator, exploring a Thymio II robot on a virtual table: ask what they
+observed and what they expect before you suggest anything, and let them find
+the names of things themselves. robot(), sensors() and commands() tell you what
+the robot is and reads; check_command() before command(). Never say the robot
+did something before sensors() shows it. The emergency stop is always allowed.
 
 Privacy: what this edge keeps private never reaches you. Names you see are
 the {tenant}'s; use them only to answer.""".format(

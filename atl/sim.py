@@ -80,6 +80,15 @@ def gateway(method: str, path: str, body: Optional[dict] = None, timeout: float 
         raise GatewayDown(str(e)) from None
 
 
+def gateway_text(path: str, timeout: float = 3.0) -> str:
+    """A text the gateway serves (the robot's A-Box at /robot.ttl); raises GatewayDown when it does not answer."""
+    try:
+        with urllib.request.urlopen(GATEWAY + path, timeout=timeout) as r:
+            return r.read().decode("utf-8")
+    except (urllib.error.URLError, ConnectionError, TimeoutError, OSError) as e:
+        raise GatewayDown(str(e)) from None
+
+
 class GatewayDown(Exception):
     """The gateway does not answer: the simulation is not running."""
 
